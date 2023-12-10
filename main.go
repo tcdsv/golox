@@ -19,19 +19,40 @@ type Error struct {
        new Expr.Literal(123)),
 */
 
+/*
+  public static void main(String[] args) {
+    Expr expression = new Expr.Binary(
+        new Expr.Unary(
+            new Token(TokenType.MINUS, "-", null, 1),
+            new Expr.Literal(123)),
+        new Token(TokenType.STAR, "*", null, 1),
+        new Expr.Grouping(
+            new Expr.Literal(45.67)));
+
+    System.out.println(new AstPrinter().print(expression));
+  }
+
+*/
+
 func main() {
 
-	t := scanner.NewToken(scanner.MINUS, nil, "-", 1)
-
-	le := expr.LiteralExpr{Value: 123}
-
-	unary := expr.UnaryExpr{
-		Token: t,
-		Expr:  le,
+	b := expr.BinaryExpr{
+		Operator: scanner.NewToken(scanner.STAR, nil, "*", 1),
+		Left: expr.UnaryExpr{
+			Operator: scanner.NewToken(scanner.MINUS, nil, "-", 1),
+			Expr: expr.LiteralExpr{
+				Value: 123,
+			},
+		},
+		Right: expr.GroupingExpr{
+			Expr: expr.LiteralExpr{
+				Value: 45.67,
+			},
+		},
 	}
 
 	p := loxprinter.AstPrinter{}
-	fmt.Println("output:" + p.Print(unary))
+	fmt.Println("output:" + p.Print(b))
 
 	/*if len(os.Args) > 1 {
 		fmt.Println("Useage: jlox [script]")

@@ -5,6 +5,8 @@ import "golox/scanner"
 type Visitor[T any] interface {
 	VisitLiteral(element LiteralExpr) T
 	VisitUnary(element UnaryExpr) T
+	VisitBinary(element BinaryExpr) T
+	VisitGrouping(element GroupingExpr) T
 }
 
 type Expr interface {
@@ -24,8 +26,8 @@ func (l LiteralExpr) AcceptPrinter(visitor Visitor[string]) string {
 // ---------------------
 
 type UnaryExpr struct {
-	Token scanner.Token
-	Expr  Expr
+	Operator scanner.Token
+	Expr     Expr
 }
 
 func (l UnaryExpr) AcceptPrinter(visitor Visitor[string]) string {
@@ -33,3 +35,23 @@ func (l UnaryExpr) AcceptPrinter(visitor Visitor[string]) string {
 }
 
 // ---------------------
+
+type GroupingExpr struct {
+	Expr Expr
+}
+
+func (e GroupingExpr) AcceptPrinter(visitor Visitor[string]) string {
+	return visitor.VisitGrouping(e)
+}
+
+// ---------------------
+
+type BinaryExpr struct {
+	Operator scanner.Token
+	Left     Expr
+	Right    Expr
+}
+
+func (e BinaryExpr) AcceptPrinter(visitor Visitor[string]) string {
+	return visitor.VisitBinary(e)
+}
