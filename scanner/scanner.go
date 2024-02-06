@@ -1,7 +1,7 @@
 package scanner
 
 import (
-	"fmt"
+	loxerror "golox/error"
 )
 
 const (
@@ -137,7 +137,7 @@ func (s *Scanner) scanString() error {
 	}
 
 	if s.isAtEnd() {
-		return fmt.Errorf("unterminated string at line: %d", s.line)
+		return loxerror.NewError(s.line, "", "unterminated string")
 	}
 
 	s.advance()
@@ -221,7 +221,7 @@ func (s *Scanner) scanToken() error {
 		} else if isAlpha(c) {
 			s.scanIdentifier()
 		} else {
-			return fmt.Errorf("unexpected character at line: %d", s.line)
+			return loxerror.NewError(s.line, "", "unexpected character")
 		}
 	}
 	return nil

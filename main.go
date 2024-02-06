@@ -7,12 +7,6 @@ import (
 	"golox/scanner"
 )
 
-type Error struct {
-	Line    int
-	Where   string
-	Message int
-}
-
 func main() {
 
 	b := expr.BinaryExpr{
@@ -59,8 +53,4 @@ func run(source string) {
 	} else {
 		fmt.Println(tokens)
 	}
-}
-
-func report(err Error) {
-	//print error
 }
