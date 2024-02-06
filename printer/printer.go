@@ -33,11 +33,11 @@ func (a AstPrinter) VisitLiteral(expr expr.LiteralExpr) string {
 }
 
 func (a AstPrinter) VisitUnary(expr expr.UnaryExpr) string {
-	return a.parenthesize(expr.Operator.Text, expr.Expr)
+	return a.parenthesize(expr.Operator.Lexeme, expr.Expr)
 }
 
 func (a AstPrinter) VisitBinary(expr expr.BinaryExpr) string {
-	return a.parenthesize(expr.Operator.Text, expr.Left, expr.Right)
+	return a.parenthesize(expr.Operator.Lexeme, expr.Left, expr.Right)
 }
 
 func (a AstPrinter) VisitGrouping(expr expr.GroupingExpr) string {

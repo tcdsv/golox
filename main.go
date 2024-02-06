@@ -13,33 +13,12 @@ type Error struct {
 	Message int
 }
 
-/*
-   new Expr.Unary(
-       new Token(TokenType.MINUS, "-", null, 1),
-       new Expr.Literal(123)),
-*/
-
-/*
-  public static void main(String[] args) {
-    Expr expression = new Expr.Binary(
-        new Expr.Unary(
-            new Token(TokenType.MINUS, "-", null, 1),
-            new Expr.Literal(123)),
-        new Token(TokenType.STAR, "*", null, 1),
-        new Expr.Grouping(
-            new Expr.Literal(45.67)));
-
-    System.out.println(new AstPrinter().print(expression));
-  }
-
-*/
-
 func main() {
 
 	b := expr.BinaryExpr{
-		Operator: scanner.NewToken(scanner.STAR, nil, "*", 1),
+		Operator: scanner.NewToken(scanner.STAR, "*", nil, 1),
 		Left: expr.UnaryExpr{
-			Operator: scanner.NewToken(scanner.MINUS, nil, "-", 1),
+			Operator: scanner.NewToken(scanner.MINUS, "-", nil, 1),
 			Expr: expr.LiteralExpr{
 				Value: 123,
 			},
@@ -54,13 +33,6 @@ func main() {
 	p := loxprinter.AstPrinter{}
 	fmt.Println("output:" + p.Print(b))
 
-	/*if len(os.Args) > 1 {
-		fmt.Println("Useage: jlox [script]")
-		os.Exit(64)
-	} else if len(os.Args) == 1 {
-		//runFile
-	}
-	runPrompt()*/
 }
 
 func runPrompt() error {

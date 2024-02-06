@@ -13,8 +13,6 @@ type Expr interface {
 	AcceptPrinter(visitor Visitor[string]) string
 }
 
-// ---------------------
-
 type LiteralExpr struct {
 	Value interface{}
 }
@@ -22,8 +20,6 @@ type LiteralExpr struct {
 func (l LiteralExpr) AcceptPrinter(visitor Visitor[string]) string {
 	return visitor.VisitLiteral(l)
 }
-
-// ---------------------
 
 type UnaryExpr struct {
 	Operator scanner.Token
@@ -34,8 +30,6 @@ func (l UnaryExpr) AcceptPrinter(visitor Visitor[string]) string {
 	return visitor.VisitUnary(l)
 }
 
-// ---------------------
-
 type GroupingExpr struct {
 	Expr Expr
 }
@@ -43,8 +37,6 @@ type GroupingExpr struct {
 func (e GroupingExpr) AcceptPrinter(visitor Visitor[string]) string {
 	return visitor.VisitGrouping(e)
 }
-
-// ---------------------
 
 type BinaryExpr struct {
 	Operator scanner.Token

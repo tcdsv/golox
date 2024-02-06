@@ -56,9 +56,9 @@ const (
 type TokenType int
 
 type Token struct {
-	literal interface{}
-	ttype   TokenType
-	Text    string
+	Literal interface{}
+	Type    TokenType
+	Lexeme  string
 	line    int
 }
 
@@ -74,11 +74,11 @@ func NewScanner(source string) *Scanner {
 	return &Scanner{source, 0, 0, 1, []Token{}}
 }
 
-func NewToken(tokenType TokenType, literal interface{}, text string, line int) Token {
+func NewToken(tokenType TokenType, lexeme string, literal interface{}, line int) Token {
 	return Token{
 		literal,
 		tokenType,
-		text,
+		lexeme,
 		line,
 	}
 }
