@@ -20,16 +20,16 @@ func NewParser(tokens []scanner.Token) *Parser {
 }
 
 func (p *Parser) Parse() expr.Expr {
-	var err error = errors.New("initial error")
+	// var err error = errors.New("initial error")
 	// var err error
-	defer handleError(&err)
+	// defer handleError(&err)
 	expr := p.expression()
 
-	if err != nil {
+	/*if err != nil {
 		fmt.Println("fuck")
 		fmt.Println(err.Error())
 		return nil
-	}
+	}*/
 	/*if r := recover(); r != nil {
 		return nil
 	}*/
@@ -74,6 +74,12 @@ func testPanic() {
 }*/
 
 func (p *Parser) isAtEnd() bool {
+	// todo:
+	// remove this conditional.
+	// The parser assumes that the list of tokens ends with an EOF token
+	if p.position >= len(p.tokens) {
+		return true
+	}
 	return p.current().Type == scanner.EOF
 }
 

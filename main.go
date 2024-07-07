@@ -8,7 +8,7 @@ import (
 
 func main() {
 
-	source := "(1 + 1) * 5"
+	source := "1"
 	scanner := scanner.NewScanner(source)
 	tokens, _ := scanner.Scan()
 	parser := parser.NewParser(tokens)
