@@ -7,41 +7,43 @@ import (
 	"strings"
 )
 
-type AstPrinter struct{}
-
-func (a AstPrinter) Print(expr expr.Expr) string {
-	return expr.AcceptPrinter(a)
+type AstPrinter struct{
+	result string
 }
 
-func (a AstPrinter) VisitLiteral(expr expr.LiteralExpr) string {
+func (a *AstPrinter) Print(expr expr.Expr) {
+	expr.Accept(a)
+}
+
+func (a *AstPrinter) VisitLiteral(expr expr.LiteralExpr) {
 	if expr.Value == nil {
-		return "nil"
+		a.result = "nil"
+		return
 	}
 
 	switch v := expr.Value.(type) {
 	case int:
-		return strconv.Itoa(v)
+		a.result = strconv.Itoa(v)
 	case string:
-		return v
+		a.result = v
 	case float64:
-		return fmt.Sprintf("%f", v)
-
+		a.result = fmt.Sprintf("%f", v)
 	default:
-		return "unknown"
+		a.result = "error - unknown literal value"
 		// panic(fmt.Sprintf("Unsupported literal type: %T", v))
 	}
 }
 
-func (a AstPrinter) VisitUnary(expr expr.UnaryExpr) string {
-	return a.parenthesize(expr.Operator.Lexeme, expr.Expr)
+func (a *AstPrinter) VisitUnary(expr expr.UnaryExpr) {
+	a.result = a.parenthesize(expr.Operator.Lexeme, expr.Expr)
 }
 
-func (a AstPrinter) VisitBinary(expr expr.BinaryExpr) string {
-	return a.parenthesize(expr.Operator.Lexeme, expr.Left, expr.Right)
+func (a *AstPrinter) VisitBinary(expr expr.BinaryExpr) {
+	a.result = a.parenthesize(expr.Operator.Lexeme, expr.Left, expr.Right)
 }
 
-func (a AstPrinter) VisitGrouping(expr expr.GroupingExpr) string {
-	return a.parenthesize("group", expr.Expr)
+func (a *AstPrinter) VisitGrouping(expr expr.GroupingExpr) {
+	a.result = a.parenthesize("group", expr.Expr)
 }
 
 func (a AstPrinter) parenthesize(name string, exprs ...expr.Expr) string {
@@ -52,7 +54,8 @@ func (a AstPrinter) parenthesize(name string, exprs ...expr.Expr) string {
 
 	for _, expr := range exprs {
 		builder.WriteString(" ")
-		builder.WriteString(a.Print(expr))
+		a.Print(expr)
+		builder.WriteString(a.result)
 	}
 
 	builder.WriteString(")")

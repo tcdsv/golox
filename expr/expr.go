@@ -2,23 +2,23 @@ package expr
 
 import "golox/scanner"
 
-type Visitor[T any] interface {
-	VisitLiteral(element LiteralExpr) T
-	VisitUnary(element UnaryExpr) T
-	VisitBinary(element BinaryExpr) T
-	VisitGrouping(element GroupingExpr) T
+type Visitor interface {
+	VisitLiteral(element LiteralExpr)
+	VisitUnary(element UnaryExpr)
+	VisitBinary(element BinaryExpr)
+	VisitGrouping(element GroupingExpr)
 }
 
 type Expr interface {
-	AcceptPrinter(visitor Visitor[string]) string
+	Accept(visitor Visitor) 
 }
 
 type LiteralExpr struct {
 	Value interface{}
 }
 
-func (l LiteralExpr) AcceptPrinter(visitor Visitor[string]) string {
-	return visitor.VisitLiteral(l)
+func (e LiteralExpr) Accept(visitor Visitor) {
+	visitor.VisitLiteral(e)
 }
 
 type UnaryExpr struct {
@@ -26,16 +26,16 @@ type UnaryExpr struct {
 	Expr     Expr
 }
 
-func (l UnaryExpr) AcceptPrinter(visitor Visitor[string]) string {
-	return visitor.VisitUnary(l)
+func (e UnaryExpr) Accept(visitor Visitor) {
+	visitor.VisitUnary(e)
 }
 
 type GroupingExpr struct {
 	Expr Expr
 }
 
-func (e GroupingExpr) AcceptPrinter(visitor Visitor[string]) string {
-	return visitor.VisitGrouping(e)
+func (e GroupingExpr) Accept(visitor Visitor) {
+	visitor.VisitGrouping(e)
 }
 
 type BinaryExpr struct {
@@ -44,6 +44,6 @@ type BinaryExpr struct {
 	Right    Expr
 }
 
-func (e BinaryExpr) AcceptPrinter(visitor Visitor[string]) string {
-	return visitor.VisitBinary(e)
+func (e BinaryExpr) Accept(visitor Visitor) {
+	visitor.VisitBinary(e)
 }
