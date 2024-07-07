@@ -2,31 +2,18 @@ package main
 
 import (
 	"fmt"
-	"golox/expr"
-	loxprinter "golox/printer"
+	"golox/parser"
 	"golox/scanner"
 )
 
 func main() {
 
-	b := expr.BinaryExpr{
-		Operator: scanner.NewToken(scanner.STAR, "*", nil, 1),
-		Left: expr.UnaryExpr{
-			Operator: scanner.NewToken(scanner.MINUS, "-", nil, 1),
-			Expr: expr.LiteralExpr{
-				Value: 123,
-			},
-		},
-		Right: expr.GroupingExpr{
-			Expr: expr.LiteralExpr{
-				Value: 45.67,
-			},
-		},
-	}
-
-	p := loxprinter.AstPrinter{}
-	fmt.Println("output:" + p.Print(b))
-
+	source := "(1 + 1) * 5"
+	scanner := scanner.NewScanner(source)
+	tokens, _ := scanner.Scan()
+	parser := parser.NewParser(tokens)
+	res := parser.Parse()
+	fmt.Println(res)
 }
 
 func runPrompt() error {
