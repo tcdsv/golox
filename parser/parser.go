@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"errors"
+	"fmt"
 	"golox/expr"
 	"golox/scanner"
 )
@@ -16,6 +18,60 @@ func NewParser(tokens []scanner.Token) *Parser {
 		position: 0,
 	}
 }
+
+func (p *Parser) Parse() expr.Expr {
+	var err error = errors.New("initial error")
+	// var err error
+	defer handleError(&err)
+	expr := p.expression()
+
+	if err != nil {
+		fmt.Println("fuck")
+		fmt.Println(err.Error())
+		return nil
+	}
+	/*if r := recover(); r != nil {
+		return nil
+	}*/
+	// _, e := p.parseInternal()
+	// defer handle error
+
+	return expr
+}
+
+func handleError(err *error) {
+
+	fmt.Println((*err).Error())
+
+	if r := recover(); r != nil {
+		// e := fmt.Errorf("fuck this shitt")
+		*err = errors.New("abs")
+	}
+
+	fmt.Println((*err).Error())
+
+}
+
+func testPanic() {
+	panic("testing panic")
+}
+
+/*(func (p *Parser) parseInternal() (expr.Expr, error) {
+	var result expr.Expr
+	var err error
+
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("shit")
+			err = fmt.Errorf("aaa")
+			err = loxerror.NewError(1, "", "")
+			result = nil
+		}
+	}()
+
+	result = p.expression()
+	return result, err
+}*/
 
 func (p *Parser) isAtEnd() bool {
 	return p.current().Type == scanner.EOF
@@ -57,6 +113,7 @@ func (p *Parser) match(tokens ...scanner.TokenType) bool {
 }
 
 func (p *Parser) expression() expr.Expr {
+	// testPanic()
 	return p.equality()
 }
 
