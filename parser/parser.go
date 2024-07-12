@@ -20,22 +20,7 @@ func NewParser(tokens []scanner.Token) *Parser {
 }
 
 func (p *Parser) Parse() expr.Expr {
-	// var err error = errors.New("initial error")
-	// var err error
-	// defer handleError(&err)
 	expr := p.expression()
-
-	/*if err != nil {
-		fmt.Println("fuck")
-		fmt.Println(err.Error())
-		return nil
-	}*/
-	/*if r := recover(); r != nil {
-		return nil
-	}*/
-	// _, e := p.parseInternal()
-	// defer handle error
-
 	return expr
 }
 
@@ -44,34 +29,12 @@ func handleError(err *error) {
 	fmt.Println((*err).Error())
 
 	if r := recover(); r != nil {
-		// e := fmt.Errorf("fuck this shitt")
 		*err = errors.New("abs")
 	}
 
 	fmt.Println((*err).Error())
 
 }
-
-func testPanic() {
-	panic("testing panic")
-}
-
-/*(func (p *Parser) parseInternal() (expr.Expr, error) {
-	var result expr.Expr
-	var err error
-
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Println("shit")
-			err = fmt.Errorf("aaa")
-			err = loxerror.NewError(1, "", "")
-			result = nil
-		}
-	}()
-
-	result = p.expression()
-	return result, err
-}*/
 
 func (p *Parser) isAtEnd() bool {
 	// todo:
@@ -94,16 +57,6 @@ func (p *Parser) previous() scanner.Token {
 func (p *Parser) current() scanner.Token {
 	return p.tokens[p.position]
 }
-
-// Pre-conditions:
-// - Current position is defined.
-// - List of tokens is provided.
-
-// Post-conditions:
-// - Returns false if the current position is at the end.
-// - Returns false if the token at the current position does not match any token in the list.
-// - Returns true if the token at the current position matches a token in the list.
-// - In case of a match, the current position is incremented by one.
 
 func (p *Parser) match(tokens ...scanner.TokenType) bool {
 	if p.isAtEnd() {
