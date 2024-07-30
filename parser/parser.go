@@ -43,18 +43,27 @@ func (p *Parser) isAtEnd() bool {
 	if p.position >= len(p.tokens) {
 		return true
 	}
-	return p.current().Type == scanner.EOF
+	return p.peek().Type == scanner.EOF
+}
+
+func (p *Parser) check(tokenType scanner.TokenType) bool {
+	/*if p.isAtEnd() {
+		return false
+	}*/
+	return p.peek().Type == tokenType
 }
 
 func (p *Parser) advance() {
-	p.position++
+	if !p.isAtEnd() {
+		p.position++
+	}
 }
 
 func (p *Parser) previous() scanner.Token {
 	return p.tokens[p.position-1]
 }
 
-func (p *Parser) current() scanner.Token {
+func (p *Parser) peek() scanner.Token {
 	return p.tokens[p.position]
 }
 
@@ -63,7 +72,7 @@ func (p *Parser) match(tokens ...scanner.TokenType) bool {
 		return false
 	}
 	for _, t := range tokens {
-		if p.current().Type == t {
+		if p.check(t) {
 			p.advance()
 			return true
 		}
