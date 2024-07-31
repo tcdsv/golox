@@ -2,19 +2,35 @@ package main
 
 import (
 	"fmt"
-	"golox/parser"
 	"golox/scanner"
+	"os"
+)
+
+// Define exit codes based on sysexits.h
+const (
+	EX_OK          = 0   // successful termination
+	EX_USAGE       = 64  // command line usage error
 )
 
 func main() {
 
-	source := "1"
-	scanner := scanner.NewScanner(source)
-	tokens, _ := scanner.Scan()
-	parser := parser.NewParser(tokens)
-	res := parser.Parse()
-	fmt.Println(res)
+	args := os.Args[1:]
+	if len(args) > 1 {
+		fmt.Println("Usage: golox [script]")
+		os.Exit(EX_USAGE)
+	}
+	if len(args) == 1 {
+		fmt.Println("Loading from file is not implemented")
+		os.Exit(EX_USAGE)
+		// runFile()
+	} else {
+		runPrompt()
+	}
+	
 }
+
+/*func runFile() {
+}*/
 
 func runPrompt() error {
 	for {
