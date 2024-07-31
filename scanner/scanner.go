@@ -1,6 +1,7 @@
 package scanner
 
 import (
+	"fmt"
 	loxerror "golox/error"
 )
 
@@ -103,16 +104,17 @@ func (s *Scanner) isAtEnd() bool {
 	return s.current >= len(s.source)
 }
 
-func (s *Scanner) Scan() ([]Token, error) {
-
+func (s *Scanner) Scan() ([]Token, []error) {
+	errors := []error{}
 	for !s.isAtEnd() {
 		err := s.scanToken()
 		if err != nil {
-			return nil, err
+			fmt.Println(err.Error())
+			errors = append(errors, err)
 		}
 	}
 	s.tokens = append(s.tokens, NewToken(EOF, "", nil, s.line))
-	return s.tokens, nil
+	return s.tokens, errors
 }
 
 func (s *Scanner) match(expected byte) bool {

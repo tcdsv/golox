@@ -34,10 +34,6 @@ func runPrompt() error {
 
 func run(source string) {
 	scanner := scanner.NewScanner(source)
-	tokens, err := scanner.Scan()
-	if err != nil {
-		fmt.Println(err.Error())
-	} else {
-		fmt.Println(tokens)
-	}
+	tokens, _ := scanner.Scan()
+	fmt.Println(tokens)
 }
