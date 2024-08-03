@@ -19,3 +19,21 @@ func TestScan_LeftParen(t *testing.T) {
 	eofToken := tokens[1]
 	require.Equal(t, scanner.EOF, eofToken.Type)
 }
+
+func TestScan_UnterminatedString(t *testing.T) {
+	s := scanner.NewScanner("\"foo")
+	tokens, errors := s.Scan()
+	require.Len(t, errors, 1)
+	require.Len(t, tokens, 1)	
+	require.Equal(t, "unterminated string", errors[0].Message)
+	require.Equal(t, scanner.EOF, tokens[0].Type)
+}
+
+func TestScan_UnexpectedCharacter(t *testing.T) {
+	s := scanner.NewScanner("&")
+	tokens, errors := s.Scan()
+	require.Len(t, errors, 1)
+	require.Len(t, tokens, 1)	
+	require.Equal(t, "unexpected character", errors[0].Message)
+	require.Equal(t, scanner.EOF, tokens[0].Type)
+}
