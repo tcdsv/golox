@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"golox/scanner"
 	"os"
@@ -13,7 +14,7 @@ const (
 )
 
 func main() {
-
+	var err error
 	args := os.Args[1:]
 	if len(args) > 1 {
 		fmt.Println("Usage: golox [script]")
@@ -24,28 +25,23 @@ func main() {
 		os.Exit(EX_USAGE)
 		// runFile()
 	} else {
-		runPrompt()
+		err = runPrompt()
 	}
-	
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 }
 
-/*func runFile() {
-}*/
-
 func runPrompt() error {
+	reader := bufio.NewReader(os.Stdin)
 	for {
-		fmt.Println("> ")
-		var input string
-		_, err := fmt.Scanln(&input)
+		fmt.Print("> ")
+		line, err := reader.ReadString('\n')
 		if err != nil {
 			return err
 		}
-		if len(input) == 0 {
-			break
-		}
-		run(input)
+		run(line)
 	}
-	return nil
 }
 
 func run(source string) {
