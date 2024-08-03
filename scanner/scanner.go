@@ -85,13 +85,9 @@ func NewToken(tokenType TokenType, lexeme string, literal interface{}, line int)
 }
 
 func (s *Scanner) addToken(tokenType TokenType, literal interface{}) {
-	text := s.source[s.start:s.current]
-	s.tokens = append(s.tokens, Token{
-		literal,
-		tokenType,
-		text,
-		s.line,
-	})
+	lexeme := s.source[s.start:s.current]
+	token := NewToken(tokenType, lexeme, literal, s.line)
+	s.tokens = append(s.tokens, token)
 }
 
 func (s *Scanner) advance() byte {
