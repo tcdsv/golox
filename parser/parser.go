@@ -1,6 +1,7 @@
 package parser
 
 import (
+	loxerror "golox/error"
 	"golox/expr"
 	"golox/scanner"
 )
@@ -17,9 +18,9 @@ func NewParser(tokens []scanner.Token) *Parser {
 	}
 }
 
-func (p *Parser) Parse() expr.Expr {
+func (p *Parser) Parse() (expr.Expr, []loxerror.Error) {
 	expr := p.expression()
-	return expr
+	return expr, nil
 }
 
 func (p *Parser) isAtEnd() bool {
