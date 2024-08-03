@@ -100,13 +100,13 @@ func (s *Scanner) isAtEnd() bool {
 	return s.current >= len(s.source)
 }
 
-func (s *Scanner) Scan() ([]Token, []loxerror.Error) {
-	errors := []loxerror.Error{}
+func (s *Scanner) Scan() ([]Token, []error) {
+	errors := []error{}
 	for !s.isAtEnd() {
 		err := s.scanToken()
 		if err != nil {
 			fmt.Println(err.Error())
-			errors = append(errors, *err)
+			errors = append(errors, err)
 		}
 	}
 	s.tokens = append(s.tokens, NewToken(EOF, "", nil, s.line))
@@ -144,7 +144,7 @@ func (s *Scanner) scanString() *loxerror.Error {
 	return nil
 }
 
-func (s *Scanner) scanToken() *loxerror.Error {
+func (s *Scanner) scanToken() error {
 
 	s.start = s.current
 	c := s.advance()

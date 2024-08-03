@@ -1,7 +1,6 @@
 package parser_test
 
 import (
-	loxerror "golox/error"
 	"golox/expr"
 	"golox/parser"
 	"golox/scanner"
@@ -23,15 +22,16 @@ func TestParser_String(t *testing.T) {
 	require.Equal(t, "foo", literalValue)
 }
 
-func parse(source string) (expr.Expr, []loxerror.Error) {
+func parse(source string) (expr.Expr, []error) {
 	s := scanner.NewScanner(source)
 	tokens, errors := s.Scan()
 	if len(errors) > 0 {
 		return nil, errors
 	}
 	p := parser.NewParser(tokens)
-	expr, errors := p.Parse()
-	if len(errors) > 0 {
+	expr, err := p.Parse()
+	if err != nil {
+		errors := []error{err}
 		return nil, errors
 	}
 	return expr, nil

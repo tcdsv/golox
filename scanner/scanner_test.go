@@ -1,6 +1,7 @@
 package scanner_test
 
 import (
+	loxerror "golox/error"
 	"golox/scanner"
 	"testing"
 
@@ -24,8 +25,9 @@ func TestScan_UnterminatedString(t *testing.T) {
 	s := scanner.NewScanner("\"foo")
 	tokens, errors := s.Scan()
 	require.Len(t, errors, 1)
-	require.Len(t, tokens, 1)	
-	require.Equal(t, "unterminated string", errors[0].Message)
+	require.Len(t, tokens, 1)
+	err, _ := errors[0].(*loxerror.Error)
+	require.Equal(t, "unterminated string", err.Message)
 	require.Equal(t, scanner.EOF, tokens[0].Type)
 }
 
@@ -33,7 +35,8 @@ func TestScan_UnexpectedCharacter(t *testing.T) {
 	s := scanner.NewScanner("&")
 	tokens, errors := s.Scan()
 	require.Len(t, errors, 1)
-	require.Len(t, tokens, 1)	
-	require.Equal(t, "unexpected character", errors[0].Message)
+	require.Len(t, tokens, 1)
+	err, _ := errors[0].(*loxerror.Error)
+	require.Equal(t, "unexpected character", err.Message)
 	require.Equal(t, scanner.EOF, tokens[0].Type)
 }

@@ -1,7 +1,6 @@
 package parser
 
 import (
-	loxerror "golox/error"
 	"golox/expr"
 	"golox/scanner"
 )
@@ -18,9 +17,8 @@ func NewParser(tokens []scanner.Token) *Parser {
 	}
 }
 
-func (p *Parser) Parse() (expr.Expr, []loxerror.Error) {
-	expr := p.expression()
-	return expr, nil
+func (p *Parser) Parse() (expr.Expr, error) {
+	return p.expression()
 }
 
 func (p *Parser) isAtEnd() bool {
@@ -58,93 +56,142 @@ func (p *Parser) match(tokens ...scanner.TokenType) bool {
 	return false
 }
 
-func (p *Parser) expression() expr.Expr {
+func (p *Parser) expression() (expr.Expr, error) {
 	return p.equality()
 }
 
-func (p *Parser) equality() expr.Expr {
-	e := p.comparison()
+func (p *Parser) equality() (expr.Expr, error) {
 
+	e, err := p.comparison()
+	if err != nil {
+		return nil, err
+	}
 	for p.match(scanner.BANG_EQUAL, scanner.EQUAL_EQUAL) {
+		right, err := p.comparison()
+		if err != nil {
+			return nil, err
+		}		
+
 		e = expr.BinaryExpr{
 			Operator: p.previous(),
 			Left:     e,
-			Right:    p.comparison(),
+			Right:    right,
 		}
 	}
 
-	return e
+	return e, nil
+
 }
 
-func (p *Parser) comparison() expr.Expr {
-	e := p.term()
+func (p *Parser) comparison() (expr.Expr, error) {
+	e, err := p.term()
+	if err != nil {
+		return nil, err
+	}
 
 	for p.match(scanner.GREATER, scanner.GREATER_EQUAL, scanner.LESS, scanner.LESS_EQUAL) {
+		right, err := p.term()
+		if err != nil {
+			return nil, err
+		}
+		
 		e = expr.BinaryExpr{
 			Operator: p.previous(),
 			Left:     e,
-			Right:    p.term(),
+			Right:    right,
 		}
 	}
 
-	return e
+	return e, nil
 }
 
-func (p *Parser) term() expr.Expr {
-	e := p.factor()
+func (p *Parser) term() (expr.Expr, error) {
+
+	e, err := p.factor()
+	if err != nil {
+		return nil, err
+	}
 
 	for p.match(scanner.PLUS, scanner.MINUS) {
+		right, err := p.factor()
+		if err != nil {
+			return nil, err
+		}
+
 		e = expr.BinaryExpr{
 			Operator: p.previous(),
 			Left:     e,
-			Right:    p.factor(),
+			Right:    right,
 		}
 	}
 
-	return e
+	return e, nil
+
 }
 
-func (p *Parser) factor() expr.Expr {
-	e := p.unary()
+func (p *Parser) factor() (expr.Expr, error) {
+
+	e, err := p.unary()
+	if err != nil {
+		return nil, err
+	}
 
 	for p.match(scanner.SLASH, scanner.STAR) {
+		right, err := p.unary()
+		if err != nil {
+			return nil, err
+		}
+
 		e = expr.BinaryExpr{
 			Operator: p.previous(),
 			Left:     e,
-			Right:    p.unary(),
+			Right:    right,
 		}
 	}
 
-	return e
+	return e, nil
+
 }
 
-func (p *Parser) unary() expr.Expr {
+func (p *Parser) unary() (expr.Expr, error) {
+
 	if p.match(scanner.BANG, scanner.MINUS) {
+		uexp, err := p.unary()
+		if err != nil {
+			return nil, err
+		}
 		e := expr.UnaryExpr{
 			Operator: p.previous(),
-			Expr:     p.unary(),
+			Expr:     uexp,
 		}
-		return e
+		return e, nil
 	}
 	return p.primary()
+
 }
 
-func (p *Parser) primary() expr.Expr {
+func (p *Parser) primary() (expr.Expr, error) {
+	
 	if p.match(scanner.NUMBER, scanner.STRING, scanner.TRUE, scanner.FALSE, scanner.NIL) {
 		e := expr.LiteralExpr{
 			Value: p.previous().Literal,
 		}
-		return e
+		return e, nil
 	}
+
 	if p.match(scanner.LEFT_PAREN) {
-		e := p.expression()
+		e, err := p.expression()
+		if err != nil {
+			return nil, err
+		}
 		if p.match(scanner.RIGHT_PAREN) {
 			e = expr.GroupingExpr{
 				Expr: e,
 			}
-			return e
+			return e, nil
 		}
 		// error
 	}
-	return nil
+	return nil, nil
+
 }
