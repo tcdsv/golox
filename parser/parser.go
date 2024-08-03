@@ -1,8 +1,6 @@
 package parser
 
 import (
-	"errors"
-	"fmt"
 	"golox/expr"
 	"golox/scanner"
 )
@@ -24,32 +22,11 @@ func (p *Parser) Parse() expr.Expr {
 	return expr
 }
 
-func handleError(err *error) {
-
-	fmt.Println((*err).Error())
-
-	if r := recover(); r != nil {
-		*err = errors.New("abs")
-	}
-
-	fmt.Println((*err).Error())
-
-}
-
 func (p *Parser) isAtEnd() bool {
-	// todo:
-	// remove this conditional.
-	// The parser assumes that the list of tokens ends with an EOF token
-	if p.position >= len(p.tokens) {
-		return true
-	}
 	return p.peek().Type == scanner.EOF
 }
 
 func (p *Parser) check(tokenType scanner.TokenType) bool {
-	/*if p.isAtEnd() {
-		return false
-	}*/
 	return p.peek().Type == tokenType
 }
 
@@ -81,7 +58,6 @@ func (p *Parser) match(tokens ...scanner.TokenType) bool {
 }
 
 func (p *Parser) expression() expr.Expr {
-	// testPanic()
 	return p.equality()
 }
 
