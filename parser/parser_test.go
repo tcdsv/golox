@@ -22,6 +22,20 @@ func TestParser_String(t *testing.T) {
 	require.Equal(t, "foo", literalValue)
 }
 
+func TestParser_GroupingMissingParen(t *testing.T) {
+	file, err := loadFile("grouping_error.lox")
+	require.NoError(t, err)
+	_, errors := parse(file)
+	require.Len(t, errors, 1)
+}
+
+func TestParser_MissingExpression(t *testing.T) {
+	file, err := loadFile("missing_expression_error.lox")
+	require.NoError(t, err)
+	_, errors := parse(file)
+	require.Len(t, errors, 1)
+}
+
 func parse(source string) (expr.Expr, []error) {
 	s := scanner.NewScanner(source)
 	tokens, errors := s.Scan()

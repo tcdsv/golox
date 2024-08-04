@@ -184,14 +184,26 @@ func (p *Parser) primary() (expr.Expr, error) {
 		if err != nil {
 			return nil, err
 		}
-		if p.match(scanner.RIGHT_PAREN) {
-			e = expr.GroupingExpr{
-				Expr: e,
-			}
-			return e, nil
-		}
-		// error
-	}
-	return nil, nil
 
+		err = p.consume(scanner.RIGHT_PAREN, "Expect ')' after expression.")
+		if err != nil {
+			return nil, err
+		}
+
+		return expr.GroupingExpr{
+			Expr: e,
+		}, nil
+
+	}
+
+	return nil, scanner.NewErrorFromToken(p.peek(), "Expect expression.")
+}
+
+func (p *Parser) consume(tokenType scanner.TokenType, message string) error {
+	if (p.check(tokenType)) {
+		p.advance()
+		return nil
+	}
+	
+	return scanner.NewErrorFromToken(p.peek(), message)
 }

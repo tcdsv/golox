@@ -1,6 +1,8 @@
 package loxerror
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Error struct {
 	Line    int

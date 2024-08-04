@@ -60,7 +60,7 @@ type Token struct {
 	Literal interface{}
 	Type    TokenType
 	Lexeme  string
-	line    int
+	Line    int
 }
 
 type Scanner struct {
@@ -82,6 +82,13 @@ func NewToken(tokenType TokenType, lexeme string, literal interface{}, line int)
 		lexeme,
 		line,
 	}
+}
+
+func NewErrorFromToken(token Token, message string) *loxerror.Error {
+	if token.Type == EOF {
+		return loxerror.NewError(token.Line, " at end", message)
+	}
+	return loxerror.NewError(token.Line, " at '" + token.Lexeme + "'", message)
 }
 
 func (s *Scanner) addToken(tokenType TokenType, literal interface{}) {
