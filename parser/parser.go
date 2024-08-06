@@ -162,7 +162,7 @@ func (p *Parser) unary() (expr.Expr, error) {
 		}
 		e := expr.UnaryExpr{
 			Operator: p.previous(),
-			Expr:     uexp,
+			Right:     uexp,
 		}
 		return e, nil
 	}
