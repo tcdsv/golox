@@ -2,6 +2,7 @@ package loxerror
 
 import (
 	"fmt"
+	tkn "golox/token"
 )
 
 type Error struct {
@@ -20,4 +21,11 @@ func NewError(line int, where, message string) *Error {
 		Where:   where,
 		Message: message,
 	}
+}
+
+func NewErrorFromToken(token tkn.Token, message string) *Error {
+	if token.Type == tkn.EOF {
+		return NewError(token.Line, " at end", message)
+	}
+	return NewError(token.Line, " at '" + token.Lexeme + "'", message)
 }

@@ -1,6 +1,6 @@
 package expr
 
-import "golox/scanner"
+import tkn "golox/token"
 
 type VisitorResult struct {
 	Result interface{}
@@ -34,7 +34,7 @@ func (e LiteralExpr) Accept(visitor Visitor) *VisitorResult {
 }
 
 type UnaryExpr struct {
-	Operator scanner.Token
+	Operator tkn.Token
 	Right     Expr
 }
 
@@ -51,7 +51,7 @@ func (e GroupingExpr) Accept(visitor Visitor) *VisitorResult {
 }
 
 type BinaryExpr struct {
-	Operator scanner.Token
+	Operator tkn.Token
 	Left     Expr
 	Right    Expr
 }

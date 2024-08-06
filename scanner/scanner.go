@@ -3,97 +3,31 @@ package scanner
 import (
 	"fmt"
 	loxerror "golox/error"
+	tkn "golox/token"
 )
-
-const (
-	LEFT_PAREN TokenType = iota
-	RIGHT_PAREN
-	LEFT_BRACE
-	RIGHT_BRACE
-	COMMA
-	DOT
-	MINUS
-	PLUS
-	SEMICOLON
-	SLASH
-	STAR
-
-	// One or two character tokens.
-	BANG
-	BANG_EQUAL
-	EQUAL
-	EQUAL_EQUAL
-	GREATER
-	GREATER_EQUAL
-	LESS
-	LESS_EQUAL
-
-	// Literals.
-	IDENTIFIER
-	STRING
-	NUMBER
-
-	// Keywords.
-	AND
-	CLASS
-	ELSE
-	FALSE
-	FUN
-	FOR
-	IF
-	NIL
-	OR
-	PRINT
-	RETURN
-	SUPER
-	THIS
-	TRUE
-	VAR
-	WHILE
-
-	EOF
-)
-
-type TokenType int
-
-type Token struct {
-	Literal interface{}
-	Type    TokenType
-	Lexeme  string
-	Line    int
-}
 
 type Scanner struct {
 	source  string
 	start   int
 	current int
 	line    int
-	tokens  []Token
+	tokens  []tkn.Token
 }
 
 func NewScanner(source string) *Scanner {
-	return &Scanner{source, 0, 0, 1, []Token{}}
+	return &Scanner{source, 0, 0, 1, []tkn.Token{}}
 }
 
-func NewToken(tokenType TokenType, lexeme string, literal interface{}, line int) Token {
-	return Token{
-		literal,
-		tokenType,
-		lexeme,
-		line,
-	}
-}
-
-func NewErrorFromToken(token Token, message string) *loxerror.Error {
-	if token.Type == EOF {
+func NewErrorFromToken(token tkn.Token, message string) *loxerror.Error {
+	if token.Type == tkn.EOF {
 		return loxerror.NewError(token.Line, " at end", message)
 	}
 	return loxerror.NewError(token.Line, " at '" + token.Lexeme + "'", message)
 }
 
-func (s *Scanner) addToken(tokenType TokenType, literal interface{}) {
+func (s *Scanner) addToken(tokenType tkn.TokenType, literal interface{}) {
 	lexeme := s.source[s.start:s.current]
-	token := NewToken(tokenType, lexeme, literal, s.line)
+	token := tkn.NewToken(tokenType, lexeme, literal, s.line)
 	s.tokens = append(s.tokens, token)
 }
 
@@ -107,7 +41,7 @@ func (s *Scanner) isAtEnd() bool {
 	return s.current >= len(s.source)
 }
 
-func (s *Scanner) Scan() ([]Token, []error) {
+func (s *Scanner) Scan() ([]tkn.Token, []error) {
 	errors := []error{}
 	for !s.isAtEnd() {
 		err := s.scanToken()
@@ -116,7 +50,7 @@ func (s *Scanner) Scan() ([]Token, []error) {
 			errors = append(errors, err)
 		}
 	}
-	s.tokens = append(s.tokens, NewToken(EOF, "", nil, s.line))
+	s.tokens = append(s.tokens, tkn.NewToken(tkn.EOF, "", nil, s.line))
 	return s.tokens, errors
 }
 
@@ -147,7 +81,7 @@ func (s *Scanner) scanString() *loxerror.Error {
 
 	s.advance()
 	text := s.source[s.start+1 : s.current-1]
-	s.addToken(STRING, text)
+	s.addToken(tkn.STRING, text)
 	return nil
 }
 
@@ -164,48 +98,48 @@ func (s *Scanner) scanToken() error {
 	case '\n':
 		s.line++
 	case '(':
-		s.addToken(LEFT_PAREN, nil)
+		s.addToken(tkn.LEFT_PAREN, nil)
 	case ')':
-		s.addToken(RIGHT_PAREN, nil)
+		s.addToken(tkn.RIGHT_PAREN, nil)
 	case '{':
-		s.addToken(LEFT_BRACE, nil)
+		s.addToken(tkn.LEFT_BRACE, nil)
 	case '}':
-		s.addToken(RIGHT_BRACE, nil)
+		s.addToken(tkn.RIGHT_BRACE, nil)
 	case ',':
-		s.addToken(COMMA, nil)
+		s.addToken(tkn.COMMA, nil)
 	case '.':
-		s.addToken(DOT, nil)
+		s.addToken(tkn.DOT, nil)
 	case '-':
-		s.addToken(MINUS, nil)
+		s.addToken(tkn.MINUS, nil)
 	case '+':
-		s.addToken(PLUS, nil)
+		s.addToken(tkn.PLUS, nil)
 	case ';':
-		s.addToken(SEMICOLON, nil)
+		s.addToken(tkn.SEMICOLON, nil)
 	case '*':
-		s.addToken(STAR, nil)
+		s.addToken(tkn.STAR, nil)
 	case '!':
 		if s.match('=') {
-			s.addToken(BANG_EQUAL, nil)
+			s.addToken(tkn.BANG_EQUAL, nil)
 		} else {
-			s.addToken(BANG, nil)
+			s.addToken(tkn.BANG, nil)
 		}
 	case '=':
 		if s.match('=') {
-			s.addToken(EQUAL_EQUAL, nil)
+			s.addToken(tkn.EQUAL_EQUAL, nil)
 		} else {
-			s.addToken(EQUAL, nil)
+			s.addToken(tkn.EQUAL, nil)
 		}
 	case '<':
 		if s.match('=') {
-			s.addToken(LESS_EQUAL, nil)
+			s.addToken(tkn.LESS_EQUAL, nil)
 		} else {
-			s.addToken(LESS, nil)
+			s.addToken(tkn.LESS, nil)
 		}
 	case '>':
 		if s.match('=') {
-			s.addToken(GREATER_EQUAL, nil)
+			s.addToken(tkn.GREATER_EQUAL, nil)
 		} else {
-			s.addToken(GREATER, nil)
+			s.addToken(tkn.GREATER, nil)
 		}
 	case '/':
 		if s.match('/') { //comment
@@ -213,7 +147,7 @@ func (s *Scanner) scanToken() error {
 				s.advance()
 			}
 		} else {
-			s.addToken(SLASH, nil)
+			s.addToken(tkn.SLASH, nil)
 		}
 	case '"':
 		err := s.scanString()
@@ -245,7 +179,7 @@ func (s *Scanner) scanNumber() error {
 	}
 
 	value := s.source[s.start:s.current]
-	s.addToken(NUMBER, value)
+	s.addToken(tkn.NUMBER, value)
 	return nil
 }
 
@@ -254,7 +188,7 @@ func (s *Scanner) scanIdentifier() error {
 		s.advance()
 	}
 	text := s.source[s.start:s.current]
-	s.addToken(s.identiferType(text), nil)
+	s.addToken(tkn.Identifier(text), nil)
 	return nil
 }
 
@@ -270,45 +204,6 @@ func (s *Scanner) peek() byte {
 		return 0
 	}
 	return s.source[s.current]
-}
-
-func (s *Scanner) identiferType(text string) TokenType {
-	switch text {
-	case "and":
-		return AND
-	case "class":
-		return CLASS
-	case "else":
-		return ELSE
-	case "false":
-		return FALSE
-	case "fun":
-		return FUN
-	case "for":
-		return FOR
-	case "if":
-		return IF
-	case "nil":
-		return NIL
-	case "or":
-		return OR
-	case "print":
-		return PRINT
-	case "return":
-		return RETURN
-	case "super":
-		return SUPER
-	case "this":
-		return THIS
-	case "true":
-		return TRUE
-	case "var":
-		return VAR
-	case "while":
-		return WHILE
-	default:
-		return IDENTIFIER
-	}
 }
 
 func isDigit(c byte) bool {
