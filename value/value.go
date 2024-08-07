@@ -11,20 +11,6 @@ type LoxValue interface {
 	Type() int
 }
 
-type Nil struct{}
-
-type Boolean struct {
-	Value bool
-}
-
-func (b Boolean) Type() int {
-	return BOOLEAN
-}
-
-func (n Nil) Type() int {
-	return NIL
-}
-
 func IsEqual(a LoxValue, b LoxValue) bool {
 	if a.Type() != b.Type() {
 		return false

@@ -183,7 +183,19 @@ func (s *Scanner) scanIdentifier() error {
 		s.advance()
 	}
 	text := s.source[s.start:s.current]
-	s.addToken(tkn.Identifier(text), nil)
+	identifier := tkn.Identifier(text)
+	var lv loxvalue.LoxValue
+	switch(identifier){
+	case tkn.TRUE:
+		lv = loxvalue.NewBoolean(true)
+	case tkn.FALSE:
+		lv = loxvalue.NewBoolean(false)
+	case tkn.NIL:
+		lv = &loxvalue.Nil{}
+	default:
+		lv = nil
+	}
+	s.addToken(tkn.Identifier(text), lv)
 	return nil
 }
 
