@@ -4,6 +4,7 @@ import (
 	"fmt"
 	loxerror "golox/error"
 	tkn "golox/token"
+	loxvalue "golox/value"
 )
 
 type Scanner struct {
@@ -18,14 +19,8 @@ func NewScanner(source string) *Scanner {
 	return &Scanner{source, 0, 0, 1, []tkn.Token{}}
 }
 
-func NewErrorFromToken(token tkn.Token, message string) *loxerror.Error {
-	if token.Type == tkn.EOF {
-		return loxerror.NewError(token.Line, " at end", message)
-	}
-	return loxerror.NewError(token.Line, " at '" + token.Lexeme + "'", message)
-}
 
-func (s *Scanner) addToken(tokenType tkn.TokenType, literal interface{}) {
+func (s *Scanner) addToken(tokenType tkn.TokenType, literal loxvalue.LoxValue) {
 	lexeme := s.source[s.start:s.current]
 	token := tkn.NewToken(tokenType, lexeme, literal, s.line)
 	s.tokens = append(s.tokens, token)
@@ -81,7 +76,7 @@ func (s *Scanner) scanString() *loxerror.Error {
 
 	s.advance()
 	text := s.source[s.start+1 : s.current-1]
-	s.addToken(tkn.STRING, text)
+	s.addToken(tkn.STRING, loxvalue.NewString(text))
 	return nil
 }
 
@@ -178,8 +173,8 @@ func (s *Scanner) scanNumber() error {
 		}
 	}
 
-	value := s.source[s.start:s.current]
-	s.addToken(tkn.NUMBER, value)
+	loxNumber, _ := loxvalue.NewNumberFromText(s.source[s.start:s.current])
+	s.addToken(tkn.NUMBER, loxNumber)
 	return nil
 }
 

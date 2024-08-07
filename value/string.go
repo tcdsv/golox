@@ -4,6 +4,12 @@ type String struct {
 	Value string
 }
 
+func NewString(text string) *String {
+	return &String{
+		Value: text,
+	}
+}
+
 func (s String) Type() int {
 	return STRING
 }

@@ -1,5 +1,7 @@
 package token
 
+import loxvalue "golox/value"
+
 const (
 	LEFT_PAREN TokenType = iota
 	RIGHT_PAREN
@@ -52,13 +54,13 @@ const (
 type TokenType int
 
 type Token struct {
-	Literal interface{}
+	Literal loxvalue.LoxValue
 	Type    TokenType
 	Lexeme  string
 	Line    int
 }
 
-func NewToken(tokenType TokenType, lexeme string, literal interface{}, line int) Token {
+func NewToken(tokenType TokenType, lexeme string, literal loxvalue.LoxValue, line int) Token {
 	return Token{
 		literal,
 		tokenType,

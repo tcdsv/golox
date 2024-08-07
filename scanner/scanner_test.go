@@ -4,10 +4,24 @@ import (
 	loxerror "golox/error"
 	"golox/scanner"
 	tkn "golox/token"
+	loxvalue "golox/value"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
+
+func TestScan_Number(t *testing.T) {
+	s := scanner.NewScanner("1")
+	tokens, errors := s.Scan()
+	require.Empty(t, errors)
+	require.Len(t, tokens, 2)
+	token := tokens[0]
+	require.Equal(t, tkn.NUMBER, token.Type)
+	require.Equal(t, loxvalue.NUMBER, token.Literal.Type()) 
+	number, ok := token.Literal.(*loxvalue.Number)
+	require.True(t, ok)
+	require.Equal(t, float64(1), number.Value)
+}
 
 func TestScan_LeftParen(t *testing.T) {
 	s := scanner.NewScanner("(")

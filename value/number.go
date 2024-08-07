@@ -1,7 +1,14 @@
 package loxvalue
 
+import "strconv"
+
 type Number struct {
 	Value float64
+}
+
+func NewNumberFromText(number string) (*Number, error) {
+	value, err := strconv.ParseFloat(number, 64)
+	return &Number{Value: value}, err
 }
 
 func (n Number) Type() int {
