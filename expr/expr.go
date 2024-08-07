@@ -1,6 +1,9 @@
 package expr
 
-import tkn "golox/token"
+import (
+	tkn "golox/token"
+	loxvalue "golox/value"
+)
 
 type VisitorResult struct {
 	Result interface{}
@@ -26,7 +29,7 @@ type Expr interface {
 }
 
 type LiteralExpr struct {
-	Value interface{}
+	Value loxvalue.LoxValue
 }
 
 func (e LiteralExpr) Accept(visitor Visitor) *VisitorResult {

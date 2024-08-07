@@ -4,6 +4,7 @@ import (
 	"golox/expr"
 	"golox/parser"
 	"golox/scanner"
+	loxvalue "golox/value"
 	"os"
 	"testing"
 
@@ -17,9 +18,9 @@ func TestParser_String(t *testing.T) {
 	require.Empty(t, errors)
 	literalExpr, ok := e.(expr.LiteralExpr)
 	require.True(t, ok)
-	literalValue, ok := literalExpr.Value.(string)
+	literalValue, ok := literalExpr.Value.(*loxvalue.String)
 	require.True(t, ok)
-	require.Equal(t, "foo", literalValue)
+	require.Equal(t, "foo", literalValue.Value)
 }
 
 func TestParser_GroupingMissingParen(t *testing.T) {
