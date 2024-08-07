@@ -12,7 +12,7 @@ func TestValue_IsEqualTrue(t *testing.T) {
 }
 
 func TestValue_IsEqualFalse(t *testing.T) {
-	// require.False(t, loxvalue.IsEqual(loxvalue.Nil{}, loxvalue.String{Value: "foo"}))
+	require.False(t, loxvalue.IsEqual(loxvalue.Nil{}, loxvalue.String{Value: "foo"}))
 	require.False(t, loxvalue.IsEqual(loxvalue.Boolean{Value: true}, loxvalue.Boolean{Value: false}))
 }
 
