@@ -4,12 +4,28 @@ import (
 	"golox/expr"
 	"golox/parser"
 	"golox/scanner"
+	tkn "golox/token"
 	loxvalue "golox/value"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
+
+func TestParser_Unary(t *testing.T) {
+	file, err := loadFile("unary.lox")
+	require.NoError(t, err)
+	e, errors := parse(file)
+	require.Empty(t, errors)
+	unaryExpr, ok := e.(expr.UnaryExpr)
+	require.True(t, ok)
+	require.Equal(t, tkn.BANG, unaryExpr.Operator.Type)
+	literalExpr, ok := unaryExpr.Right.(expr.LiteralExpr)
+	require.True(t, ok)
+	literalBool, ok := literalExpr.Value.(*loxvalue.Boolean)
+	require.True(t, ok)
+	require.Equal(t, true, literalBool.Value)
+}
 
 func TestParser_String(t *testing.T) {
 	file, err := loadFile("string.lox")

@@ -68,13 +68,15 @@ func (p *Parser) equality() (expr.Expr, error) {
 		return nil, err
 	}
 	for p.match(tkn.BANG_EQUAL, tkn.EQUAL_EQUAL) {
+		operator := p.previous()
+
 		right, err := p.comparison()
 		if err != nil {
 			return nil, err
 		}		
 
 		e = expr.BinaryExpr{
-			Operator: p.previous(),
+			Operator: operator,
 			Left:     e,
 			Right:    right,
 		}
@@ -91,13 +93,15 @@ func (p *Parser) comparison() (expr.Expr, error) {
 	}
 
 	for p.match(tkn.GREATER, tkn.GREATER_EQUAL, tkn.LESS, tkn.LESS_EQUAL) {
+		operator := p.previous()
+
 		right, err := p.term()
 		if err != nil {
 			return nil, err
 		}
 		
 		e = expr.BinaryExpr{
-			Operator: p.previous(),
+			Operator: operator,
 			Left:     e,
 			Right:    right,
 		}
@@ -114,13 +118,15 @@ func (p *Parser) term() (expr.Expr, error) {
 	}
 
 	for p.match(tkn.PLUS, tkn.MINUS) {
+		operator := p.previous()
+
 		right, err := p.factor()
 		if err != nil {
 			return nil, err
 		}
 
 		e = expr.BinaryExpr{
-			Operator: p.previous(),
+			Operator: operator,
 			Left:     e,
 			Right:    right,
 		}
@@ -138,13 +144,15 @@ func (p *Parser) factor() (expr.Expr, error) {
 	}
 
 	for p.match(tkn.SLASH, tkn.STAR) {
+		operator := p.previous()
+		
 		right, err := p.unary()
 		if err != nil {
 			return nil, err
 		}
 
 		e = expr.BinaryExpr{
-			Operator: p.previous(),
+			Operator: operator,
 			Left:     e,
 			Right:    right,
 		}
@@ -157,13 +165,14 @@ func (p *Parser) factor() (expr.Expr, error) {
 func (p *Parser) unary() (expr.Expr, error) {
 
 	if p.match(tkn.BANG, tkn.MINUS) {
+		operator := p.previous()
 		uexp, err := p.unary()
 		if err != nil {
 			return nil, err
 		}
 		e := expr.UnaryExpr{
-			Operator: p.previous(),
-			Right:     uexp,
+			Operator: operator,
+			Right:    uexp,
 		}
 		return e, nil
 	}

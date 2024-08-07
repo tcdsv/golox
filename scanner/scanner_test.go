@@ -10,6 +10,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestScan_Bang(t *testing.T) {
+	s := scanner.NewScanner("!true")
+	tokens, errors := s.Scan()
+	require.Empty(t, errors)
+	require.Len(t, tokens, 3)
+	bang := tokens[0]
+	require.Equal(t, tkn.BANG, bang.Type)
+	require.Equal(t, nil, bang.Literal)
+	keyword := tokens[1]
+	require.Equal(t, tkn.TRUE, keyword.Type)
+}
+
 func TestScan_Number(t *testing.T) {
 	s := scanner.NewScanner("1")
 	tokens, errors := s.Scan()
