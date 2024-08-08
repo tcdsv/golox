@@ -42,7 +42,8 @@ func IsTruthy(value LoxValue) bool {
 		return false
 	}
 	if value.Type() == BOOLEAN {
-		return value.(Boolean).Value
+		lB := value.(*Boolean)
+		return lB.Value
 	}
 	return true
 }
