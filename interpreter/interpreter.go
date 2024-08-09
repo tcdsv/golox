@@ -10,6 +10,7 @@ import (
 
 type Interpreter struct {
 	Value loxvalue.LoxValue
+	Err error
 }
 
 func NewInterpreter() *Interpreter {
@@ -21,8 +22,19 @@ func (i *Interpreter) evaluate(expr expression.Expr) *expr.VisitorResult {
 }
 
 func (i *Interpreter) Interpret(expr expression.Expr) {
+
 	result := expr.Accept(i)
-	i.Value = result.Result.(loxvalue.LoxValue)
+	v, _ := result.Result.(loxvalue.LoxValue)
+	
+	i.Value = v
+
+	/*if ok {
+		i.Value = v
+	} else {
+		i.Value = nil
+	}*/
+	i.Err = result.Err
+
 }
 
 func (i *Interpreter) VisitLiteral(expr expression.LiteralExpr) *expression.VisitorResult {

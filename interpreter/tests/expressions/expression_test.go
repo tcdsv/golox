@@ -12,71 +12,96 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestInterpreter_Grouping(t *testing.T) {
-	file, err := loadFile("grouping.lox")
+func TestInterpreter_BinaryExprPlusError(t *testing.T) {
+	file, err := loadFile("binary_expr_plus_error.lox")
 	require.NoError(t, err)
 	e, errors := parse(file)
 	require.Empty(t, errors)
-	value := interpret(e)
+	value, err := interpret(e)
+	require.Nil(t, value)
+	require.Error(t, err)
+}
 
+func TestInterpreter_UnaryExprMinusError(t *testing.T) {
+	file, err := loadFile("unary_expr_minus_error.lox")
+	require.NoError(t, err)
+	e, errors := parse(file)
+	require.Empty(t, errors)
+	value, err := interpret(e)
+	require.Nil(t, value)
+	require.Error(t, err)
+}
+
+func TestInterpreter_GroupingExpr(t *testing.T) {
+	file, err := loadFile("grouping_expr.lox")
+	require.NoError(t, err)
+	e, errors := parse(file)
+	require.Empty(t, errors)
+	value, err := interpret(e)
+
+	require.NoError(t, err)
 	loxNumber, ok := value.(*loxvalue.Number)
 	require.True(t, ok)
 	require.Equal(t, float64(5), loxNumber.Value)
 }
 
-func TestInterpreter_Addition(t *testing.T) {
-	file, err := loadFile("addition.lox")
+func TestInterpreter_BinaryExprPlusNumbers(t *testing.T) {
+	file, err := loadFile("binary_expr_plus_numbers.lox")
 	require.NoError(t, err)
 	e, errors := parse(file)
 	require.Empty(t, errors)
-	value := interpret(e)
+	value, err := interpret(e)
 
+	require.NoError(t, err)
 	loxNumber, ok := value.(*loxvalue.Number)
 	require.True(t, ok)
 	require.Equal(t, float64(10), loxNumber.Value)
 }
 
-func TestInterpreter_Subtract(t *testing.T) {
-	file, err := loadFile("subtract.lox")
+func TestInterpreter_BinaryExprMinus(t *testing.T) {
+	file, err := loadFile("binary_expr_minus.lox")
 	require.NoError(t, err)
 	e, errors := parse(file)
 	require.Empty(t, errors)
-	value := interpret(e)
+	value, err := interpret(e)
 
+	require.NoError(t, err)
 	loxNumber, ok := value.(*loxvalue.Number)
 	require.True(t, ok)
 	require.Equal(t, float64(2), loxNumber.Value)
 }
 
-func TestInterpreter_Minus(t *testing.T) {
-	file, err := loadFile("minus.lox")
+func TestInterpreter_UnaryExprMinus(t *testing.T) {
+	file, err := loadFile("unary_expr_minus.lox")
 	require.NoError(t, err)
 	e, errors := parse(file)
 	require.Empty(t, errors)
-	value := interpret(e)
+	value, err := interpret(e)
 
+	require.NoError(t, err)
 	loxNumber, ok := value.(*loxvalue.Number)
 	require.True(t, ok)
 	require.Equal(t, float64(-1), loxNumber.Value)
 }
 
-func TestInterpreter_Bang(t *testing.T) {
+func TestInterpreter_UnaryExprBang(t *testing.T) {
 
-	file, err := loadFile("bang.lox")
+	file, err := loadFile("unary_expr_bang.lox")
 	require.NoError(t, err)
 	e, errors := parse(file)
 	require.Empty(t, errors)
-	value := interpret(e)
+	value, err := interpret(e)
 
+	require.NoError(t, err)
 	loxBoolean, ok := value.(*loxvalue.Boolean)
 	require.True(t, ok)
 	require.Equal(t, false, loxBoolean.Value)
 }
 
-func interpret(e expr.Expr) loxvalue.LoxValue {
+func interpret(e expr.Expr) (loxvalue.LoxValue, error) {
 	i := interpreter.NewInterpreter()
 	i.Interpret(e)
-	return i.Value
+	return i.Value, i.Err
 }
 
 func parse(source string) (expr.Expr, []error) {
