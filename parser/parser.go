@@ -3,6 +3,7 @@ package parser
 import (
 	loxerror "golox/error"
 	"golox/expr"
+	"golox/stmt"
 	tkn "golox/token"
 )
 
@@ -18,8 +19,16 @@ func NewParser(tokens []tkn.Token) *Parser {
 	}
 }
 
-func (p *Parser) Parse() (expr.Expr, error) {
-	return p.expression()
+func (p *Parser) Parse() ([]stmt.Stmt, error) {
+	statements := []stmt.Stmt{}
+	for !p.isAtEnd() {
+		statement, err := p.statement()
+		if err != nil {
+			return nil, err
+		}
+		statements = append(statements, statement)
+	}
+	return statements, nil
 }
 
 func (p *Parser) isAtEnd() bool {
@@ -55,6 +64,29 @@ func (p *Parser) match(tokens ...tkn.TokenType) bool {
 		}
 	}
 	return false
+}
+
+func (p *Parser) statement() (stmt.Stmt, error) {
+	if p.match(tkn.PRINT) {
+		return p.printStatement()
+	}
+	return p.expressionStatement()
+}
+
+func (p *Parser) printStatement() (stmt.Stmt, error) {
+	e, _ := p.expression()
+	p.consume(tkn.SEMICOLON, "Expect ';' after value.")
+	return stmt.PrintStmt{
+		E: e,
+	}, nil
+}
+
+func (p *Parser) expressionStatement() (stmt.Stmt, error) {
+	e, _ := p.expression()
+	p.consume(tkn.SEMICOLON, "Expect ';' after value.")
+	return stmt.ExprStmt{
+		E: e,
+	}, nil
 }
 
 func (p *Parser) expression() (expr.Expr, error) {

@@ -4,6 +4,7 @@ import (
 	"golox/expr"
 	"golox/parser"
 	"golox/scanner"
+	"golox/stmt"
 	tkn "golox/token"
 	loxvalue "golox/value"
 	"os"
@@ -15,9 +16,9 @@ import (
 func TestParser_Unary(t *testing.T) {
 	file, err := loadFile("unary.lox")
 	require.NoError(t, err)
-	e, errors := parse(file)
+	statements, errors := parse(file)
 	require.Empty(t, errors)
-	unaryExpr, ok := e.(expr.UnaryExpr)
+	unaryExpr, ok := statements[0].(stmt.ExprStmt).E.(expr.UnaryExpr)
 	require.True(t, ok)
 	require.Equal(t, tkn.BANG, unaryExpr.Operator.Type)
 	literalExpr, ok := unaryExpr.Right.(expr.LiteralExpr)
@@ -30,9 +31,9 @@ func TestParser_Unary(t *testing.T) {
 func TestParser_String(t *testing.T) {
 	file, err := loadFile("string.lox")
 	require.NoError(t, err)
-	e, errors := parse(file)
+	statements, errors := parse(file)
 	require.Empty(t, errors)
-	literalExpr, ok := e.(expr.LiteralExpr)
+	literalExpr, ok := statements[0].(stmt.ExprStmt).E.(expr.LiteralExpr)
 	require.True(t, ok)
 	literalValue, ok := literalExpr.Value.(*loxvalue.String)
 	require.True(t, ok)
@@ -53,19 +54,19 @@ func TestParser_MissingExpression(t *testing.T) {
 	require.Len(t, errors, 1)
 }
 
-func parse(source string) (expr.Expr, []error) {
+func parse(source string) ([]stmt.Stmt, []error) {
 	s := scanner.NewScanner(source)
 	tokens, errors := s.Scan()
 	if len(errors) > 0 {
 		return nil, errors
 	}
 	p := parser.NewParser(tokens)
-	expr, err := p.Parse()
+	statements, err := p.Parse()
 	if err != nil {
 		errors := []error{err}
 		return nil, errors
 	}
-	return expr, nil
+	return statements, nil
 }
 
 func loadFile(path string) (string, error) {
