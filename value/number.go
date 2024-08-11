@@ -1,6 +1,9 @@
 package loxvalue
 
-import "strconv"
+import (
+	"strconv"
+	"strings"
+)
 
 type Number struct {
 	Value float64
@@ -13,6 +16,11 @@ func NewNumberFromText(number string) (*Number, error) {
 
 func (n Number) Type() int {
 	return NUMBER
+}
+
+func (n Number) toString() string {
+	text := strconv.FormatFloat(n.Value, 'f', -1, 64)
+	return strings.TrimSuffix(text, ".0")
 }
 
 func (n Number) Minus() *Number {

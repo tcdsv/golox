@@ -1,5 +1,7 @@
 package loxvalue
 
+import "strconv"
+
 type Boolean struct {
 	Value bool
 }
@@ -10,4 +12,8 @@ func NewBoolean(value bool) *Boolean {
 
 func (b Boolean) Type() int {
 	return BOOLEAN
+}
+
+func (b Boolean) toString() string {
+	return strconv.FormatBool(b.Value)
 }
