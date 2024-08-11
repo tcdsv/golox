@@ -74,19 +74,36 @@ func (p *Parser) statement() (stmt.Stmt, error) {
 }
 
 func (p *Parser) printStatement() (stmt.Stmt, error) {
-	e, _ := p.expression()
-	p.consume(tkn.SEMICOLON, "Expect ';' after value.")
+
+	e, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
+	err = p.consume(tkn.SEMICOLON, "Expect ';' after value.")
+	if err != nil {
+		return nil, err
+	}
+	
 	return stmt.PrintStmt{
 		E: e,
 	}, nil
+
 }
 
 func (p *Parser) expressionStatement() (stmt.Stmt, error) {
-	e, _ := p.expression()
-	p.consume(tkn.SEMICOLON, "Expect ';' after value.")
+	
+	e, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
+	err = p.consume(tkn.SEMICOLON, "Expect ';' after value.")
+	if err != nil {
+		return nil, err
+	}
 	return stmt.ExprStmt{
 		E: e,
 	}, nil
+
 }
 
 func (p *Parser) expression() (expr.Expr, error) {
