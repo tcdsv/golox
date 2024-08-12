@@ -1,10 +1,10 @@
 package expression_test
 
 import (
-	"golox/expr"
 	"golox/interpreter"
 	"golox/parser"
 	"golox/scanner"
+	"golox/stmt"
 	loxvalue "golox/value"
 	"os"
 	"testing"
@@ -98,25 +98,29 @@ func TestInterpreter_UnaryExprBang(t *testing.T) {
 	require.Equal(t, false, loxBoolean.Value)
 }
 
-func interpret(e expr.Expr) (loxvalue.LoxValue, error) {
+func interpret(statements []stmt.Stmt) (loxvalue.LoxValue, error) {
 	i := interpreter.NewInterpreter()
-	i.Interpret(e)
-	return i.Value, i.Err
+	i.Interpret(statements)
+	if i.Results[0].Err != nil {
+		return nil, i.Results[0].Err
+	}
+	loxValue := i.Results[0].Result.(loxvalue.LoxValue)
+	return loxValue, nil
 }
 
-func parse(source string) (expr.Expr, []error) {
+func parse(source string) ([]stmt.Stmt, []error) {
 	s := scanner.NewScanner(source)
 	tokens, errors := s.Scan()
 	if len(errors) > 0 {
 		return nil, errors
 	}
 	p := parser.NewParser(tokens)
-	expr, err := p.Parse()
+	statements, err := p.Parse()
 	if err != nil {
 		errors := []error{err}
 		return nil, errors
 	}
-	return expr, nil
+	return statements, nil
 }
 
 func loadFile(path string) (string, error) {

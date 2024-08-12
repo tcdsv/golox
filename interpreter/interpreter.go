@@ -4,38 +4,39 @@ import (
 	loxerror "golox/error"
 	"golox/expr"
 	expression "golox/expr"
+	"golox/stmt"
 	tkn "golox/token"
 	loxvalue "golox/value"
 	visitor "golox/visitor"
 )
 
 type Interpreter struct {
-	Value loxvalue.LoxValue
-	Err error
+	Results []*visitor.VisitorResult
 }
 
 func NewInterpreter() *Interpreter {
-	return &Interpreter{}
+	return &Interpreter{Results: []*visitor.VisitorResult{},}
 }
 
 func (i *Interpreter) evaluate(expr expression.Expr) *visitor.VisitorResult {
 	return expr.Accept(i)
 }
 
-func (i *Interpreter) Interpret(expr expression.Expr) {
+func (i *Interpreter) Interpret(statements []stmt.Stmt) {
+	for _, statement := range statements {
+		result := statement.Accept(i)
+		i.Results = append(i.Results, result)
+	}
+}
 
-	result := expr.Accept(i)
-	v, _ := result.Result.(loxvalue.LoxValue)
-	
-	i.Value = v
+func (i *Interpreter) VisitPrintStatement(printStmt stmt.PrintStmt) *visitor.VisitorResult {
+	//lv := getLoxVaule(i.evaluate(printStmt.E))
+	// print value
+	return visitor.NewVisitorResult(nil, nil)
+}
 
-	/*if ok {
-		i.Value = v
-	} else {
-		i.Value = nil
-	}*/
-	i.Err = result.Err
-
+func (i *Interpreter) VisitExpressionStatement(exprStmt stmt.ExprStmt) *visitor.VisitorResult {
+	return i.evaluate(exprStmt.E)
 }
 
 func (i *Interpreter) VisitLiteral(expr expression.LiteralExpr) *visitor.VisitorResult {

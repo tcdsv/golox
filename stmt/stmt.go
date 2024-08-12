@@ -6,8 +6,8 @@ import (
 )
 
 type StmtVisitor interface {
-	visitExpressionStmt(exprStmt ExprStmt) *visitor.VisitorResult
-	visitPrintStmt(printStmt PrintStmt) *visitor.VisitorResult
+	VisitExpressionStatement(exprStmt ExprStmt) *visitor.VisitorResult
+	VisitPrintStatement(printStmt PrintStmt) *visitor.VisitorResult
 }
 
 type Stmt interface {
@@ -19,7 +19,7 @@ type ExprStmt struct {
 }
 
 func (es ExprStmt) Accept(visitor StmtVisitor) *visitor.VisitorResult {
-	return visitor.visitExpressionStmt(es)
+	return visitor.VisitExpressionStatement(es)
 }
 
 type PrintStmt struct {
@@ -27,5 +27,5 @@ type PrintStmt struct {
 }
 
 func (ps PrintStmt) Accept(visitor StmtVisitor) *visitor.VisitorResult {
-	return visitor.visitPrintStmt(ps)
+	return visitor.VisitPrintStatement(ps)
 }
