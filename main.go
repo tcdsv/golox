@@ -3,6 +3,8 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"golox/interpreter"
+	"golox/parser"
 	"golox/scanner"
 	"os"
 )
@@ -45,7 +47,34 @@ func runPrompt() error {
 }
 
 func run(source string) {
+
+	hasError := false
 	scanner := scanner.NewScanner(source)
-	tokens, _ := scanner.Scan()
-	fmt.Println(tokens)
+	tokens, errors := scanner.Scan()
+	if len(errors) > 0 {
+		printErrors(errors)
+		hasError = true
+	}
+	parser := parser.NewParser(tokens)
+	statements, err := parser.Parse()
+	if err != nil {
+		fmt.Println(err.Error())
+		hasError = true
+	}
+	if hasError {
+		return
+	}
+	interpreter := interpreter.NewInterpreter()
+	interpreter.Interpret(statements)
+	for _, statement := range interpreter.Results {
+		if statement.Err != nil {
+			fmt.Println(statement.Err.Error())
+		}
+	}
+}
+
+func printErrors(errors []error) {
+	for _, err := range errors {
+		fmt.Println(err.Error())
+	}
 }
