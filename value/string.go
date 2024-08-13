@@ -14,7 +14,7 @@ func (s String) Type() int {
 	return STRING
 }
 
-func (s String) toString() string {
+func (s String) ToString() string {
 	return s.Value
 }
 

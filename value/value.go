@@ -9,7 +9,7 @@ const (
 
 type LoxValue interface {
 	Type() int
-	toString() string
+	ToString() string
 }
 
 func IsEqual(a LoxValue, b LoxValue) bool {

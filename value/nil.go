@@ -6,6 +6,6 @@ func (n Nil) Type() int {
 	return NIL
 }
 
-func (n Nil) toString() string {
+func (n Nil) ToString() string {
 	return "nil"
 }

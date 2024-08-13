@@ -18,7 +18,7 @@ func (n Number) Type() int {
 	return NUMBER
 }
 
-func (n Number) toString() string {
+func (n Number) ToString() string {
 	text := strconv.FormatFloat(n.Value, 'f', -1, 64)
 	return strings.TrimSuffix(text, ".0")
 }

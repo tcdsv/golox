@@ -1,6 +1,7 @@
 package interpreter
 
 import (
+	"fmt"
 	loxerror "golox/error"
 	"golox/expr"
 	expression "golox/expr"
@@ -30,8 +31,8 @@ func (i *Interpreter) Interpret(statements []stmt.Stmt) {
 }
 
 func (i *Interpreter) VisitPrintStatement(printStmt stmt.PrintStmt) *visitor.VisitorResult {
-	//lv := getLoxVaule(i.evaluate(printStmt.E))
-	// print value
+	lv := getLoxVaule(i.evaluate(printStmt.E))
+	fmt.Println(lv.ToString())
 	return visitor.NewVisitorResult(nil, nil)
 }
 

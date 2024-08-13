@@ -14,6 +14,6 @@ func (b Boolean) Type() int {
 	return BOOLEAN
 }
 
-func (b Boolean) toString() string {
+func (b Boolean) ToString() string {
 	return strconv.FormatBool(b.Value)
 }
