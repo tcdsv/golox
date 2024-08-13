@@ -19,16 +19,18 @@ func NewParser(tokens []tkn.Token) *Parser {
 	}
 }
 
-func (p *Parser) Parse() ([]stmt.Stmt, error) {
+func (p *Parser) Parse() ([]stmt.Stmt, []error) {
 	statements := []stmt.Stmt{}
+	errors := []error{}
 	for !p.isAtEnd() {
 		statement, err := p.declaration()
 		if err != nil {
-			return nil, err
+			errors = append(errors, err)
+		} else {
+			statements = append(statements, statement)
 		}
-		statements = append(statements, statement)
 	}
-	return statements, nil
+	return statements, errors
 }
 
 func (p *Parser) isAtEnd() bool {

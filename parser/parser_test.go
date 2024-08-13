@@ -89,12 +89,12 @@ func parse(source string) ([]stmt.Stmt, []error) {
 		return nil, errors
 	}
 	p := parser.NewParser(tokens)
-	statements, err := p.Parse()
-	if err != nil {
+	return p.Parse()
+	/*if err != nil {
 		errors := []error{err}
 		return nil, errors
 	}
-	return statements, nil
+	return statements, nil*/
 }
 
 func loadFile(path string) (string, error) {

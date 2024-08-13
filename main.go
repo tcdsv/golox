@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"golox/interpreter"
 	"golox/parser"
 	"golox/scanner"
 	"os"
@@ -56,21 +55,21 @@ func run(source string) {
 		hasError = true
 	}
 	parser := parser.NewParser(tokens)
-	statements, err := parser.Parse()
-	if err != nil {
-		fmt.Println(err.Error())
+	_, errors = parser.Parse()
+	if len(errors) > 0 {
+		printErrors(errors)
 		hasError = true
 	}
 	if hasError {
 		return
 	}
-	interpreter := interpreter.NewInterpreter()
+	/*interpreter := interpreter.NewInterpreter()
 	interpreter.Interpret(statements)
 	for _, statement := range interpreter.Results {
 		if statement.Err != nil {
 			fmt.Println(statement.Err.Error())
 		}
-	}
+	}*/
 }
 
 func printErrors(errors []error) {
