@@ -22,7 +22,7 @@ func NewParser(tokens []tkn.Token) *Parser {
 func (p *Parser) Parse() ([]stmt.Stmt, error) {
 	statements := []stmt.Stmt{}
 	for !p.isAtEnd() {
-		statement, err := p.statement()
+		statement, err := p.declaration()
 		if err != nil {
 			return nil, err
 		}
@@ -64,6 +64,49 @@ func (p *Parser) match(tokens ...tkn.TokenType) bool {
 		}
 	}
 	return false
+}
+
+func (p *Parser) declaration() (stmt.Stmt, error) {
+	var stmt stmt.Stmt
+	var err error
+	if p.match(tkn.VAR) {
+		stmt, err =  p.varDeclaration()
+	} else {
+		stmt, err = p.statement()
+	}
+	if err != nil {
+		p.synchronize()
+		return nil, err
+	}
+	return stmt, nil
+}
+
+func (p *Parser) varDeclaration() (stmt.Stmt, error) {
+
+	err := p.consume(tkn.IDENTIFIER, "Expect variable name.")
+	if err != nil {
+		return nil, err
+	}
+
+	name := p.previous()
+	var initializer expr.Expr
+	if p.match(tkn.EQUAL) {
+		initializer, err = p.expression()
+		if err != nil {
+			return nil, err
+		} 
+	}
+
+	err = p.consume(tkn.SEMICOLON, "Expect ';' after variable declaration.")
+	if err != nil {
+		return nil, err
+	}
+
+	return stmt.VarStmt{
+		Name: name,
+		Initializer: initializer,
+	}, nil
+
 }
 
 func (p *Parser) statement() (stmt.Stmt, error) {
@@ -238,6 +281,12 @@ func (p *Parser) primary() (expr.Expr, error) {
 		return e, nil
 	}
 
+	if p.match(tkn.IDENTIFIER) {
+		return expr.VariableExpr{
+			Name: p.previous(),
+		}, nil
+	}
+
 	if p.match(tkn.LEFT_PAREN) {
 		e, err := p.expression()
 		if err != nil {
@@ -265,4 +314,27 @@ func (p *Parser) consume(tokenType tkn.TokenType, message string) error {
 	}
 	
 	return loxerror.NewErrorFromToken(p.peek(), message)
+}
+
+func (p *Parser) synchronize() {
+	
+	p.advance()
+	for !p.isAtEnd() {
+		if p.previous().Type == tkn.SEMICOLON {
+			return
+		}
+		switch (p.peek().Type) {
+			case tkn.CLASS:
+        	case tkn.FUN:
+        	case tkn.VAR:
+        	case tkn.FOR:
+        	case tkn.IF:
+        	case tkn.WHILE:
+        	case tkn.PRINT:
+        	case tkn.RETURN:
+          		return;
+		}
+		p.advance()
+	}
+
 }
