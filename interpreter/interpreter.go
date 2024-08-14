@@ -13,10 +13,37 @@ import (
 
 type Interpreter struct {
 	Results []*visitor.VisitorResult
+	env     Environment
+}
+
+// VisitVariableStatement implements stmt.StmtVisitor.
+func (i *Interpreter) VisitVariableStatement(variableStmt stmt.VarStmt) *visitor.VisitorResult {
+	
+	var varExpr loxvalue.LoxValue
+	if variableStmt.Initializer != nil {
+		initializer := i.evaluate(variableStmt.Initializer)
+		if initializer.Err != nil {
+			return visitor.NewVisitorResult(nil, initializer.Err)
+		}
+		varExpr = getLoxVaule(initializer)
+	} else {
+		varExpr = loxvalue.Nil{}
+	}
+	i.env.Define(variableStmt.Name.Lexeme, varExpr)
+	return visitor.NewVisitorResult(nil, nil)
+	
+}
+
+// VisitVariable implements expr.ExprVisitor.
+func (i *Interpreter) VisitVariable(element expression.VariableExpr) *visitor.VisitorResult {
+	return visitor.NewVisitorResult(i.env.Get(element.Name))
 }
 
 func NewInterpreter() *Interpreter {
-	return &Interpreter{Results: []*visitor.VisitorResult{},}
+	return &Interpreter{
+		Results: []*visitor.VisitorResult{},
+		env:     *NewEnvironment(),
+	}
 }
 
 func (i *Interpreter) evaluate(expr expression.Expr) *visitor.VisitorResult {
@@ -49,7 +76,7 @@ func (i *Interpreter) VisitUnary(expr expr.UnaryExpr) *visitor.VisitorResult {
 
 	var result loxvalue.LoxValue
 
-	switch (expr.Operator.Type) {
+	switch expr.Operator.Type {
 	case tkn.MINUS:
 		number, err := checkNumberOperand(expr.Operator, right)
 		if err != nil {
@@ -73,7 +100,7 @@ func (i *Interpreter) VisitBinary(expr expr.BinaryExpr) *visitor.VisitorResult {
 	right := getLoxVaule(i.evaluate(expr.Right))
 	//todo: error checking
 
-	switch (expr.Operator.Type) {
+	switch expr.Operator.Type {
 	case tkn.MINUS:
 
 		left, right, err := checkNumberOperands(expr.Operator, left, right)
@@ -99,7 +126,7 @@ func (i *Interpreter) VisitBinary(expr expr.BinaryExpr) *visitor.VisitorResult {
 		return visitor.NewVisitorResult(left.Multiply(right), nil)
 
 	case tkn.PLUS:
-		
+
 		result, err := binaryPlus(expr.Operator, left, right)
 		if err != nil {
 			return visitor.NewVisitorResult(nil, err)
@@ -137,9 +164,9 @@ func (i *Interpreter) VisitBinary(expr expr.BinaryExpr) *visitor.VisitorResult {
 			return visitor.NewVisitorResult(nil, err)
 		}
 		return visitor.NewVisitorResult(left.LessEqual(right), nil)
-	
+
 	case tkn.BANG_EQUAL:
-		
+
 		result := loxvalue.NewBoolean(!loxvalue.IsEqual(left, right))
 		return visitor.NewVisitorResult(result, nil)
 
@@ -159,7 +186,7 @@ func (i *Interpreter) VisitGrouping(expr expr.GroupingExpr) *visitor.VisitorResu
 }
 
 func binaryPlus(operator tkn.Token, left loxvalue.LoxValue, right loxvalue.LoxValue) (loxvalue.LoxValue, error) {
-	
+
 	if left.Type() == loxvalue.NUMBER && right.Type() == loxvalue.NUMBER {
 		leftNum := left.(*loxvalue.Number)
 		rightNum := right.(*loxvalue.Number)
@@ -171,7 +198,7 @@ func binaryPlus(operator tkn.Token, left loxvalue.LoxValue, right loxvalue.LoxVa
 		rightStr := right.(*loxvalue.String)
 		return leftStr.Concat(rightStr), nil
 	}
-	
+
 	return nil, loxerror.NewErrorFromToken(operator, "Operands must be two numbers or two strings.")
 
 }
