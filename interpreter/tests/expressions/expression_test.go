@@ -12,6 +12,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestInterpreter_Print(t *testing.T) {
+	file, err := loadFile("print.lox")
+	require.NoError(t, err)
+	e, errors := parse(file)
+	require.Empty(t, errors)
+	require.NotEmpty(t, e)
+	_, err = interpret(e)
+	require.NoError(t, err)
+}
+
 func TestInterpreter_BinaryExprPlusError(t *testing.T) {
 	file, err := loadFile("binary_expr_plus_error.lox")
 	require.NoError(t, err)
@@ -104,8 +114,11 @@ func interpret(statements []stmt.Stmt) (loxvalue.LoxValue, error) {
 	if i.Results[0].Err != nil {
 		return nil, i.Results[0].Err
 	}
-	loxValue := i.Results[0].Result.(loxvalue.LoxValue)
-	return loxValue, nil
+	loxValue, ok := i.Results[0].Result.(loxvalue.LoxValue)
+	if ok {
+		return loxValue, nil
+	}
+	return nil, nil
 }
 
 func parse(source string) ([]stmt.Stmt, []error) {
