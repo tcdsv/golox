@@ -16,9 +16,27 @@ type Interpreter struct {
 	env     Environment
 }
 
+// VisitAssing implements expr.ExprVisitor.
+func (i *Interpreter) VisitAssing(assignExpr expression.AssignExpr) *visitor.VisitorResult {
+	
+	res := i.evaluate(assignExpr.Right)
+	if res.Err != nil {
+		return res
+	}
+
+	//todo: design a solution to get rid of this casting thing.
+	// if res.Err is nil, then casting should be done at an earlier stage.
+	err := i.env.Assing(assignExpr.Name, res.Result.(loxvalue.LoxValue))
+	if err != nil {
+		return visitor.NewVisitorResult(nil, err)
+	}
+	return visitor.NewVisitorResult(res.Result, nil)
+
+}
+
 // VisitVariableStatement implements stmt.StmtVisitor.
 func (i *Interpreter) VisitVariableStatement(variableStmt stmt.VarStmt) *visitor.VisitorResult {
-	
+
 	var varExpr loxvalue.LoxValue
 	if variableStmt.Initializer != nil {
 		initializer := i.evaluate(variableStmt.Initializer)
@@ -31,7 +49,7 @@ func (i *Interpreter) VisitVariableStatement(variableStmt stmt.VarStmt) *visitor
 	}
 	i.env.Define(variableStmt.Name.Lexeme, varExpr)
 	return visitor.NewVisitorResult(nil, nil)
-	
+
 }
 
 // VisitVariable implements expr.ExprVisitor.
@@ -58,9 +76,11 @@ func (i *Interpreter) Interpret(statements []stmt.Stmt) {
 }
 
 func (i *Interpreter) VisitPrintStatement(printStmt stmt.PrintStmt) *visitor.VisitorResult {
-	lv := getLoxVaule(i.evaluate(printStmt.E))
+	
+	lv := getLoxVaule(i.evaluate(printStmt.E)) 	//todo: handle evaluation errors.
 	fmt.Println(lv.ToString())
 	return visitor.NewVisitorResult(nil, nil)
+	
 }
 
 func (i *Interpreter) VisitExpressionStatement(exprStmt stmt.ExprStmt) *visitor.VisitorResult {

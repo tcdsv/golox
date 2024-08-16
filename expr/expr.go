@@ -12,6 +12,7 @@ type ExprVisitor interface {
 	VisitBinary(element BinaryExpr) *visitor.VisitorResult
 	VisitGrouping(element GroupingExpr) *visitor.VisitorResult
 	VisitVariable(element VariableExpr) *visitor.VisitorResult
+	VisitAssing(element AssignExpr) *visitor.VisitorResult
 }
 
 type Expr interface {
@@ -59,4 +60,13 @@ type VariableExpr struct {
 
 func (e VariableExpr) Accept(visitor ExprVisitor) *visitor.VisitorResult {
 	return visitor.VisitVariable(e)
+}
+
+type AssignExpr struct {
+	Name tkn.Token
+	Right Expr
+}
+
+func (e AssignExpr) Accept(visitor ExprVisitor) *visitor.VisitorResult {
+	return visitor.VisitAssing(e)
 }

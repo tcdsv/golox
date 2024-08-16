@@ -26,3 +26,11 @@ func (env *Environment) Get(name token.Token) (loxvalue.LoxValue, error) {
 	}
 	return nil, loxerror.NewErrorFromToken(name, "Undefined variable '" + name.Lexeme + "'.")
 }
+
+func (env *Environment) Assing(name token.Token, value loxvalue.LoxValue) error {
+	if _, ok := env.values[name.Lexeme]; !ok {
+		return loxerror.NewErrorFromToken(name, "Undefined variable '" + name.Lexeme + "'.")
+	}
+	env.values[name.Lexeme] = value
+	return nil
+}

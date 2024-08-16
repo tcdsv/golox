@@ -152,7 +152,37 @@ func (p *Parser) expressionStatement() (stmt.Stmt, error) {
 }
 
 func (p *Parser) expression() (expr.Expr, error) {
-	return p.equality()
+	return p.assignment()
+}
+
+func (p *Parser) assignment() (expr.Expr, error) {
+	
+	e, err := p.equality()
+	if err != nil {
+		return nil, err
+	}
+	
+	if p.match(tkn.EQUAL) {
+
+		equals := p.previous()
+		rightAssignment, err := p.assignment()
+		if err != nil {
+			return nil, err
+		}
+
+		varExpr, ok := e.(expr.VariableExpr)
+		if ok {
+			assignExpr := expr.AssignExpr{
+				Name: varExpr.Name,
+				Right: rightAssignment,
+			}
+			return assignExpr, nil		
+		}
+
+		return nil, loxerror.NewErrorFromToken(equals, "Invalid assignment target.")
+	} 
+	return e, nil
+
 }
 
 func (p *Parser) equality() (expr.Expr, error) {

@@ -12,6 +12,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestInterpreter_Assign(t *testing.T) {
+	file, err := loadFile("assign.lox")
+	require.NoError(t, err)
+	e, errors := parse(file)
+	require.Empty(t, errors)
+	require.NotEmpty(t, e)
+	_, err = interpret(e)
+	require.NoError(t, err)
+}
+
 func TestInterpreter_Print(t *testing.T) {
 	file, err := loadFile("print.lox")
 	require.NoError(t, err)
