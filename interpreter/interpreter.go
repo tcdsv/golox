@@ -60,7 +60,7 @@ func (i *Interpreter) VisitVariable(element expression.VariableExpr) *visitor.Vi
 func NewInterpreter() *Interpreter {
 	return &Interpreter{
 		Results: []*visitor.VisitorResult{},
-		env:     *NewEnvironment(),
+		env:     *NewGlobalEnv(),
 	}
 }
 
