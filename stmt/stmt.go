@@ -10,6 +10,7 @@ type StmtVisitor interface {
 	VisitExpressionStatement(exprStmt ExprStmt) *visitor.VisitorResult
 	VisitPrintStatement(printStmt PrintStmt) *visitor.VisitorResult
 	VisitVariableStatement(variableStmt VarStmt) *visitor.VisitorResult
+	VisitBlockStatement(BlockStmt BlockStmt) *visitor.VisitorResult
 }
 
 type Stmt interface {
@@ -39,4 +40,12 @@ type VarStmt struct {
 
 func (s VarStmt) Accept(visitor StmtVisitor) *visitor.VisitorResult {
 	return visitor.VisitVariableStatement(s)
+}
+
+type BlockStmt struct {
+	Statements []Stmt
+}
+
+func (s BlockStmt) Accept(visitor StmtVisitor) *visitor.VisitorResult {
+	return visitor.VisitBlockStatement(s)
 }

@@ -38,6 +38,9 @@ func (p *Parser) isAtEnd() bool {
 }
 
 func (p *Parser) check(tokenType tkn.TokenType) bool {
+	if p.isAtEnd() {
+		return false
+	}
 	return p.peek().Type == tokenType
 }
 
@@ -115,7 +118,33 @@ func (p *Parser) statement() (stmt.Stmt, error) {
 	if p.match(tkn.PRINT) {
 		return p.printStatement()
 	}
+	if p.match(tkn.LEFT_BRACE) {
+		return p.blockStatement()
+	}
 	return p.expressionStatement()
+}
+
+func (p *Parser) blockStatement() (stmt.Stmt, error) {
+
+	statements := []stmt.Stmt{}
+
+	for !p.check(tkn.RIGHT_BRACE) && !p.isAtEnd() {
+		statement, err := p.declaration()
+		if err != nil {
+			return nil, err
+		}
+		statements = append(statements, statement)
+	}
+
+	err := p.consume(tkn.RIGHT_BRACE, "Expect '}' after block.")
+	if err != nil {
+		return nil, err
+	}
+	
+	return stmt.BlockStmt{
+		Statements: statements,
+	}, nil
+
 }
 
 func (p *Parser) printStatement() (stmt.Stmt, error) {

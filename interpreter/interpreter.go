@@ -13,12 +13,38 @@ import (
 
 type Interpreter struct {
 	Results []*visitor.VisitorResult
-	env     Environment
+	env     *Environment
+}
+
+// VisitBlockStatement implements stmt.StmtVisitor.
+func (i *Interpreter) VisitBlockStatement(BlockStmt stmt.BlockStmt) *visitor.VisitorResult {
+	i.executeBlock(BlockStmt.Statements, NewLocalEnv(i.env))	
+	return visitor.NewVisitorResult(nil, nil)
+}
+
+func (i *Interpreter) executeBlock(statements []stmt.Stmt, localEnv *Environment) *visitor.VisitorResult {
+	
+	prevEnv := localEnv.enclosing
+	i.env = localEnv
+	
+	defer func() {
+		i.env = prevEnv
+	}()
+	
+	for _, statement := range statements {
+		res := i.execute(statement)
+		if res.Err != nil {
+			return visitor.NewVisitorResult(nil, res.Err)
+		}
+	}
+
+	return visitor.NewVisitorResult(nil, nil)
+	
 }
 
 // VisitAssing implements expr.ExprVisitor.
 func (i *Interpreter) VisitAssing(assignExpr expression.AssignExpr) *visitor.VisitorResult {
-	
+
 	res := i.evaluate(assignExpr.Right)
 	if res.Err != nil {
 		return res
@@ -60,7 +86,7 @@ func (i *Interpreter) VisitVariable(element expression.VariableExpr) *visitor.Vi
 func NewInterpreter() *Interpreter {
 	return &Interpreter{
 		Results: []*visitor.VisitorResult{},
-		env:     *NewGlobalEnv(),
+		env:     NewGlobalEnv(),
 	}
 }
 
@@ -68,19 +94,23 @@ func (i *Interpreter) evaluate(expr expression.Expr) *visitor.VisitorResult {
 	return expr.Accept(i)
 }
 
+func (i *Interpreter) execute(stmt stmt.Stmt) *visitor.VisitorResult {
+	return stmt.Accept(i)
+}
+
 func (i *Interpreter) Interpret(statements []stmt.Stmt) {
 	for _, statement := range statements {
-		result := statement.Accept(i)
+		result := i.execute(statement)
 		i.Results = append(i.Results, result)
 	}
 }
 
 func (i *Interpreter) VisitPrintStatement(printStmt stmt.PrintStmt) *visitor.VisitorResult {
-	
-	lv := getLoxVaule(i.evaluate(printStmt.E)) 	//todo: handle evaluation errors.
+
+	lv := getLoxVaule(i.evaluate(printStmt.E)) //todo: handle evaluation errors.
 	fmt.Println(lv.ToString())
 	return visitor.NewVisitorResult(nil, nil)
-	
+
 }
 
 func (i *Interpreter) VisitExpressionStatement(exprStmt stmt.ExprStmt) *visitor.VisitorResult {
