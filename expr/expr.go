@@ -3,27 +3,31 @@ package expr
 import (
 	tkn "golox/token"
 	loxvalue "golox/value"
-	visitor "golox/visitor"
 )
 
-type ExprVisitor interface {
-	VisitLiteral(element LiteralExpr) *visitor.VisitorResult
-	VisitUnary(element UnaryExpr) *visitor.VisitorResult
-	VisitBinary(element BinaryExpr) *visitor.VisitorResult
-	VisitGrouping(element GroupingExpr) *visitor.VisitorResult
-	VisitVariable(element VariableExpr) *visitor.VisitorResult
-	VisitAssing(element AssignExpr) *visitor.VisitorResult
+type ExprVisitor[T any] interface {
+	VisitLiteral(element LiteralExpr) T
+	VisitUnary(element UnaryExpr) T
+	VisitBinary(element BinaryExpr) T
+	VisitGrouping(element GroupingExpr) T
+	VisitVariable(element VariableExpr) T
+	VisitAssing(element AssignExpr) T
+}
+
+type LoxValueResult struct {
+	Value loxvalue.LoxValue
+	Error error
 }
 
 type Expr interface {
-	Accept(visitor ExprVisitor) *visitor.VisitorResult
+	Evaluate(visitor ExprVisitor[LoxValueResult]) LoxValueResult
 }
 
 type LiteralExpr struct {
 	Value loxvalue.LoxValue
 }
 
-func (e LiteralExpr) Accept(visitor ExprVisitor) *visitor.VisitorResult {
+func (e LiteralExpr) Evaluate(visitor ExprVisitor[LoxValueResult]) LoxValueResult {
 	return visitor.VisitLiteral(e)
 }
 
@@ -32,7 +36,7 @@ type UnaryExpr struct {
 	Right     Expr
 }
 
-func (e UnaryExpr) Accept(visitor ExprVisitor) *visitor.VisitorResult {
+func (e UnaryExpr) Evaluate(visitor ExprVisitor[LoxValueResult]) LoxValueResult {
 	return visitor.VisitUnary(e)
 }
 
@@ -40,7 +44,7 @@ type GroupingExpr struct {
 	Expr Expr
 }
 
-func (e GroupingExpr) Accept(visitor ExprVisitor) *visitor.VisitorResult {
+func (e GroupingExpr) Evaluate(visitor ExprVisitor[LoxValueResult]) LoxValueResult {
 	return visitor.VisitGrouping(e)
 }
 
@@ -50,7 +54,7 @@ type BinaryExpr struct {
 	Right    Expr
 }
 
-func (e BinaryExpr) Accept(visitor ExprVisitor) *visitor.VisitorResult {
+func (e BinaryExpr) Evaluate(visitor ExprVisitor[LoxValueResult]) LoxValueResult {
 	return visitor.VisitBinary(e)
 }
 
@@ -58,7 +62,7 @@ type VariableExpr struct {
 	Name tkn.Token
 }
 
-func (e VariableExpr) Accept(visitor ExprVisitor) *visitor.VisitorResult {
+func (e VariableExpr) Evaluate(visitor ExprVisitor[LoxValueResult]) LoxValueResult {
 	return visitor.VisitVariable(e)
 }
 
@@ -67,6 +71,6 @@ type AssignExpr struct {
 	Right Expr
 }
 
-func (e AssignExpr) Accept(visitor ExprVisitor) *visitor.VisitorResult {
+func (e AssignExpr) Evaluate(visitor ExprVisitor[LoxValueResult]) LoxValueResult {
 	return visitor.VisitAssing(e)
 }

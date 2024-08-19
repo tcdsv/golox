@@ -39,25 +39,24 @@ func (i *Interpreter) executeBlock(statements []stmt.Stmt, localEnv *Environment
 	}
 
 	return visitor.NewVisitorResult(nil, nil)
-	
+
 }
 
 // VisitAssing implements expr.ExprVisitor.
-func (i *Interpreter) VisitAssing(assignExpr expression.AssignExpr) *visitor.VisitorResult {
+func (i *Interpreter) VisitAssing(assignExpr expression.AssignExpr) expr.LoxValueResult {
 
-	res := i.evaluate(assignExpr.Right)
-	if res.Err != nil {
+	res := i.Evaluate(assignExpr.Right)
+	if res.Error != nil {
 		return res
 	}
 
 	//todo: design a solution to get rid of this casting thing.
 	// if res.Err is nil, then casting should be done at an earlier stage.
-	err := i.env.Assing(assignExpr.Name, res.Result.(loxvalue.LoxValue))
+	err := i.env.Assing(assignExpr.Name, res.Value)
 	if err != nil {
-		return visitor.NewVisitorResult(nil, err)
+		return expression.LoxValueResult{Error: err}
 	}
-	return visitor.NewVisitorResult(res.Result, nil)
-
+	return res
 }
 
 // VisitVariableStatement implements stmt.StmtVisitor.
@@ -65,11 +64,11 @@ func (i *Interpreter) VisitVariableStatement(variableStmt stmt.VarStmt) *visitor
 
 	var varExpr loxvalue.LoxValue
 	if variableStmt.Initializer != nil {
-		initializer := i.evaluate(variableStmt.Initializer)
-		if initializer.Err != nil {
-			return visitor.NewVisitorResult(nil, initializer.Err)
+		initializer := i.Evaluate(variableStmt.Initializer)
+		if initializer.Error != nil {
+			return visitor.NewVisitorResult(nil, initializer.Error)
 		}
-		varExpr = getLoxVaule(initializer)
+		varExpr = initializer.Value
 	} else {
 		varExpr = loxvalue.Nil{}
 	}
@@ -79,8 +78,9 @@ func (i *Interpreter) VisitVariableStatement(variableStmt stmt.VarStmt) *visitor
 }
 
 // VisitVariable implements expr.ExprVisitor.
-func (i *Interpreter) VisitVariable(element expression.VariableExpr) *visitor.VisitorResult {
-	return visitor.NewVisitorResult(i.env.Get(element.Name))
+func (i *Interpreter) VisitVariable(element expression.VariableExpr) expr.LoxValueResult {
+	variable, err := i.env.Get(element.Name)
+	return expression.LoxValueResult{Value: variable, Error: err}
 }
 
 func NewInterpreter() *Interpreter {
@@ -90,8 +90,8 @@ func NewInterpreter() *Interpreter {
 	}
 }
 
-func (i *Interpreter) evaluate(expr expression.Expr) *visitor.VisitorResult {
-	return expr.Accept(i)
+func (i *Interpreter) Evaluate(expr expression.Expr) expr.LoxValueResult {
+	return expr.Evaluate(i)
 }
 
 func (i *Interpreter) execute(stmt stmt.Stmt) *visitor.VisitorResult {
@@ -107,132 +107,144 @@ func (i *Interpreter) Interpret(statements []stmt.Stmt) {
 
 func (i *Interpreter) VisitPrintStatement(printStmt stmt.PrintStmt) *visitor.VisitorResult {
 
-	lv := getLoxVaule(i.evaluate(printStmt.E)) //todo: handle evaluation errors.
-	fmt.Println(lv.ToString())
+	lv := i.Evaluate(printStmt.E) //todo: handle evaluation errors.
+	fmt.Println(lv.Value.ToString())
 	return visitor.NewVisitorResult(nil, nil)
 
 }
 
 func (i *Interpreter) VisitExpressionStatement(exprStmt stmt.ExprStmt) *visitor.VisitorResult {
-	return i.evaluate(exprStmt.E)
+	res := i.Evaluate(exprStmt.E)
+	return visitor.NewVisitorResult(res, res.Error)
 }
 
-func (i *Interpreter) VisitLiteral(expr expression.LiteralExpr) *visitor.VisitorResult {
-	return visitor.NewVisitorResult(expr.Value, nil)
+func (i *Interpreter) VisitLiteral(expr expression.LiteralExpr) expr.LoxValueResult {
+	return expression.LoxValueResult{Value: expr.Value}
 }
 
-func (i *Interpreter) VisitUnary(expr expr.UnaryExpr) *visitor.VisitorResult {
-	right := getLoxVaule(i.evaluate(expr.Right))
+func (i *Interpreter) VisitUnary(expr expr.UnaryExpr) expr.LoxValueResult {
+	
+	right := i.Evaluate(expr.Right)
+	if right.Error != nil {
+		return right
+	}
 
 	var result loxvalue.LoxValue
 
 	switch expr.Operator.Type {
 	case tkn.MINUS:
-		number, err := checkNumberOperand(expr.Operator, right)
+		number, err := checkNumberOperand(expr.Operator, right.Value)
 		if err != nil {
-			return visitor.NewVisitorResult(nil, err)
+			return expression.LoxValueResult{Error: err}
 		}
 		result = number.Minus()
 	case tkn.BANG:
-		result := loxvalue.NewBoolean(!loxvalue.IsTruthy(right))
-		return visitor.NewVisitorResult(result, nil)
+		result = loxvalue.NewBoolean(!loxvalue.IsTruthy(right.Value))
 	}
 	//todo: error
-	return visitor.NewVisitorResult(result, nil)
+	return expression.LoxValueResult{Value: result}
+
 }
 
 func getLoxVaule(r *visitor.VisitorResult) loxvalue.LoxValue {
 	return r.Result.(loxvalue.LoxValue)
 }
 
-func (i *Interpreter) VisitBinary(expr expr.BinaryExpr) *visitor.VisitorResult {
-	left := getLoxVaule(i.evaluate(expr.Left))
-	right := getLoxVaule(i.evaluate(expr.Right))
-	//todo: error checking
+func (i *Interpreter) VisitBinary(expr expr.BinaryExpr) expr.LoxValueResult {
+	
+	left := i.Evaluate(expr.Left)
+	right := i.Evaluate(expr.Right)
+	
+	if left.Error != nil {
+		return left
+	}
+	if right.Error != nil {
+		return right
+	}
 
 	switch expr.Operator.Type {
 	case tkn.MINUS:
 
-		left, right, err := checkNumberOperands(expr.Operator, left, right)
+		left, right, err := checkNumberOperands(expr.Operator, left.Value, right.Value)
 		if err != nil {
-			return visitor.NewVisitorResult(nil, err)
+			return expression.LoxValueResult{Error: err}
 		}
-		return visitor.NewVisitorResult(left.Subtract(right), nil)
+		return expression.LoxValueResult{Value: left.Subtract(right)}
 
 	case tkn.SLASH:
 
-		left, right, err := checkNumberOperands(expr.Operator, left, right)
+		left, right, err := checkNumberOperands(expr.Operator, left.Value, right.Value)
 		if err != nil {
-			return visitor.NewVisitorResult(nil, err)
+			return expression.LoxValueResult{Error: err}
 		}
-		return visitor.NewVisitorResult(left.Divide(right), nil)
+		return expression.LoxValueResult{Value: left.Divide(right)}
 
 	case tkn.STAR:
 
-		left, right, err := checkNumberOperands(expr.Operator, left, right)
+		left, right, err := checkNumberOperands(expr.Operator, left.Value, right.Value)
 		if err != nil {
-			return visitor.NewVisitorResult(nil, err)
+			return expression.LoxValueResult{Error: err}
 		}
-		return visitor.NewVisitorResult(left.Multiply(right), nil)
+		return expression.LoxValueResult{Value: left.Multiply(right)}
 
 	case tkn.PLUS:
 
-		result, err := binaryPlus(expr.Operator, left, right)
+		result, err := binaryPlus(expr.Operator, left.Value, right.Value)
 		if err != nil {
-			return visitor.NewVisitorResult(nil, err)
+			return expression.LoxValueResult{Error: err}
 		}
-		return visitor.NewVisitorResult(result, nil)
+		return expression.LoxValueResult{Value: result}
 
 	case tkn.GREATER:
 
-		left, right, err := checkNumberOperands(expr.Operator, left, right)
+		left, right, err := checkNumberOperands(expr.Operator, left.Value, right.Value)
 		if err != nil {
-			return visitor.NewVisitorResult(nil, err)
+			return expression.LoxValueResult{Error: err}
 		}
-		return visitor.NewVisitorResult(left.Greater(right), nil)
+		return expression.LoxValueResult{Value: left.Greater(right)}
 
 	case tkn.GREATER_EQUAL:
 
-		left, right, err := checkNumberOperands(expr.Operator, left, right)
+		left, right, err := checkNumberOperands(expr.Operator, left.Value, right.Value)
 		if err != nil {
-			return visitor.NewVisitorResult(nil, err)
+			return expression.LoxValueResult{Error: err}
 		}
-		return visitor.NewVisitorResult(left.GreaterEqual(right), nil)
+		return expression.LoxValueResult{Value: left.GreaterEqual(right)}
 
 	case tkn.LESS:
 
-		left, right, err := checkNumberOperands(expr.Operator, left, right)
+		left, right, err := checkNumberOperands(expr.Operator, left.Value, right.Value)
 		if err != nil {
-			return visitor.NewVisitorResult(nil, err)
+			return expression.LoxValueResult{Error: err}
 		}
-		return visitor.NewVisitorResult(left.Less(right), nil)
+		return expression.LoxValueResult{Value: left.Less(right)}
 
 	case tkn.LESS_EQUAL:
 
-		left, right, err := checkNumberOperands(expr.Operator, left, right)
+		left, right, err := checkNumberOperands(expr.Operator, left.Value, right.Value)
 		if err != nil {
-			return visitor.NewVisitorResult(nil, err)
+			return expression.LoxValueResult{Error: err}
 		}
-		return visitor.NewVisitorResult(left.LessEqual(right), nil)
+		return expression.LoxValueResult{Value: left.LessEqual(right)}
 
 	case tkn.BANG_EQUAL:
 
-		result := loxvalue.NewBoolean(!loxvalue.IsEqual(left, right))
-		return visitor.NewVisitorResult(result, nil)
+		result := loxvalue.NewBoolean(!loxvalue.IsEqual(left.Value, right.Value))
+		return expression.LoxValueResult{Value: result}
 
 	case tkn.EQUAL_EQUAL:
 
-		result := loxvalue.NewBoolean(loxvalue.IsEqual(left, right))
-		return visitor.NewVisitorResult(result, nil)
+		result := loxvalue.NewBoolean(loxvalue.IsEqual(left.Value, right.Value))
+		return expression.LoxValueResult{Value: result}
 
 	}
 
 	//todo: error
-	return nil
+	return expression.LoxValueResult{Error: nil}
 }
 
-func (i *Interpreter) VisitGrouping(expr expr.GroupingExpr) *visitor.VisitorResult {
-	return i.evaluate(expr.Expr)
+func (i *Interpreter) VisitGrouping(expr expr.GroupingExpr) expr.LoxValueResult {
+	return i.Evaluate(expr.Expr)
 }
 
 func binaryPlus(operator tkn.Token, left loxvalue.LoxValue, right loxvalue.LoxValue) (loxvalue.LoxValue, error) {

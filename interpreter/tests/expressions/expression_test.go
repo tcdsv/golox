@@ -1,6 +1,7 @@
 package expression_test
 
 import (
+	"golox/expr"
 	"golox/interpreter"
 	"golox/parser"
 	"golox/scanner"
@@ -134,9 +135,9 @@ func interpret(statements []stmt.Stmt) (loxvalue.LoxValue, error) {
 	if i.Results[0].Err != nil {
 		return nil, i.Results[0].Err
 	}
-	loxValue, ok := i.Results[0].Result.(loxvalue.LoxValue)
+	loxValue, ok := i.Results[0].Result.(expr.LoxValueResult)
 	if ok {
-		return loxValue, nil
+		return loxValue.Value, nil
 	}
 	return nil, nil
 }
