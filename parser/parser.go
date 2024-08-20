@@ -217,9 +217,65 @@ func (p *Parser) expression() (expr.Expr, error) {
 	return p.assignment()
 }
 
-func (p *Parser) assignment() (expr.Expr, error) {
+func (p *Parser) or() (expr.Expr, error) {
+	
+	and, err := p.and()
+	if err != nil {
+		return nil, err
+	}
+
+	for p.match(tkn.OR) {
+
+		operator := p.previous()
+
+		right, err := p.and()
+		if err != nil {
+			return nil, err
+		}
+
+		and = expr.LogicalExpr{
+			Operator: operator,
+			Left: and,
+			Right: right,
+		}
+
+	}
+
+	return and, nil
+
+}
+
+func (p *Parser) and() (expr.Expr, error) {
 	
 	e, err := p.equality()
+	if err != nil {
+		return nil, err
+	}
+
+	for p.match(tkn.AND) {
+		
+		operator := p.previous()
+
+		right, err := p.equality()
+		if err != nil {
+			return nil, err
+		}
+
+		e = expr.LogicalExpr{
+			Operator: operator,
+			Left: e,
+			Right: right, 
+		}
+
+	}
+	
+	return e, nil
+
+}
+
+func (p *Parser) assignment() (expr.Expr, error) {
+	
+	e, err := p.or()
 	if err != nil {
 		return nil, err
 	}

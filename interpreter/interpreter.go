@@ -16,6 +16,39 @@ type Interpreter struct {
 	env     *Environment
 }
 
+
+func (i *Interpreter) VisitLogical(LogicalExpr expr.LogicalExpr) expr.LoxValueResult {
+
+	left := i.Evaluate(LogicalExpr.Left) 
+	if left.Error != nil {
+		return left
+	}
+
+	operator := LogicalExpr.Operator.Type
+	switch (operator) {
+		case tkn.OR:
+	
+			if loxvalue.IsTruthy(left.Value) {
+				return expression.LoxValueResult{Value: loxvalue.Boolean{Value: true}}
+			}
+	
+		case tkn.AND:
+		
+			if !loxvalue.IsTruthy(left.Value) {
+				return expression.LoxValueResult{Value: loxvalue.Boolean{Value: false}}
+			}
+	}
+
+	right := i.Evaluate(LogicalExpr.Right)
+	if right.Error != nil {
+		return right
+	}
+	return expression.LoxValueResult{
+		Value: loxvalue.Boolean{Value: loxvalue.IsTruthy(right.Value)},
+	}
+	
+}
+
 // VisitIfStatement implements stmt.StmtVisitor.
 func (i *Interpreter) VisitIfStatement(IfStmt stmt.IfStmt) *visitor.VisitorResult {
 	

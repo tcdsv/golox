@@ -12,6 +12,7 @@ type ExprVisitor[T any] interface {
 	VisitGrouping(element GroupingExpr) T
 	VisitVariable(element VariableExpr) T
 	VisitAssing(element AssignExpr) T
+	VisitLogical(element LogicalExpr) T
 }
 
 type LoxValueResult struct {
@@ -73,4 +74,14 @@ type AssignExpr struct {
 
 func (e AssignExpr) Evaluate(visitor ExprVisitor[LoxValueResult]) LoxValueResult {
 	return visitor.VisitAssing(e)
+}
+
+type LogicalExpr struct {
+	Operator tkn.Token
+	Left Expr
+	Right Expr
+}
+
+func (e LogicalExpr) Evaluate(visitor ExprVisitor[LoxValueResult]) LoxValueResult {
+	return visitor.VisitLogical(e)
 }
