@@ -11,6 +11,7 @@ type StmtVisitor interface {
 	VisitPrintStatement(printStmt PrintStmt) *visitor.VisitorResult
 	VisitVariableStatement(variableStmt VarStmt) *visitor.VisitorResult
 	VisitBlockStatement(BlockStmt BlockStmt) *visitor.VisitorResult
+	VisitIfStatement(IfStmt IfStmt) *visitor.VisitorResult
 }
 
 type Stmt interface {
@@ -48,4 +49,14 @@ type BlockStmt struct {
 
 func (s BlockStmt) Accept(visitor StmtVisitor) *visitor.VisitorResult {
 	return visitor.VisitBlockStatement(s)
+}
+
+type IfStmt struct {
+	Condition expr.Expr
+	ThenBrnach Stmt
+	ElseBranch Stmt
+}
+
+func (s IfStmt) Accept(visitor StmtVisitor) *visitor.VisitorResult {
+	return visitor.VisitIfStatement(s)
 }

@@ -115,6 +115,9 @@ func (p *Parser) varDeclaration() (stmt.Stmt, error) {
 }
 
 func (p *Parser) statement() (stmt.Stmt, error) {
+	if p.match(tkn.IF) {
+		return p.ifStatement()
+	}
 	if p.match(tkn.PRINT) {
 		return p.printStatement()
 	}
@@ -122,6 +125,36 @@ func (p *Parser) statement() (stmt.Stmt, error) {
 		return p.blockStatement()
 	}
 	return p.expressionStatement()
+}
+
+func (p *Parser) ifStatement() (stmt.Stmt, error) {
+
+	p.consume(tkn.LEFT_PAREN, "Expect '(' after 'if'.")
+	condition, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
+	p.consume(tkn.RIGHT_PAREN, "Expect ')' after if condition.")
+
+	thenBranch, err := p.statement()
+	if err != nil {
+		return nil, err
+	}
+
+	var elseBranch stmt.Stmt
+	if p.match(tkn.ELSE) {
+		elseBranch, err = p.statement()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return stmt.IfStmt{
+		Condition: condition,
+		ThenBrnach: thenBranch,
+		ElseBranch: elseBranch,
+	},nil
+
 }
 
 func (p *Parser) blockStatement() (stmt.Stmt, error) {

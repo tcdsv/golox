@@ -16,21 +16,40 @@ type Interpreter struct {
 	env     *Environment
 }
 
+// VisitIfStatement implements stmt.StmtVisitor.
+func (i *Interpreter) VisitIfStatement(IfStmt stmt.IfStmt) *visitor.VisitorResult {
+	
+	conditionValue := i.Evaluate(IfStmt.Condition)
+	if conditionValue.Error != nil {
+		return visitor.NewVisitorResult(nil, conditionValue.Error)
+	}
+
+	isConditionTrue := loxvalue.IsTruthy(conditionValue.Value) 
+	if isConditionTrue {
+		return i.execute(IfStmt.ThenBrnach)
+	} else if IfStmt.ElseBranch != nil {
+		return i.execute(IfStmt.ElseBranch)
+	}
+
+	return visitor.NewVisitorResult(nil, nil)
+
+}
+
 // VisitBlockStatement implements stmt.StmtVisitor.
 func (i *Interpreter) VisitBlockStatement(BlockStmt stmt.BlockStmt) *visitor.VisitorResult {
-	i.executeBlock(BlockStmt.Statements, NewLocalEnv(i.env))	
+	i.executeBlock(BlockStmt.Statements, NewLocalEnv(i.env))
 	return visitor.NewVisitorResult(nil, nil)
 }
 
 func (i *Interpreter) executeBlock(statements []stmt.Stmt, localEnv *Environment) *visitor.VisitorResult {
-	
+
 	prevEnv := localEnv.enclosing
 	i.env = localEnv
-	
+
 	defer func() {
 		i.env = prevEnv
 	}()
-	
+
 	for _, statement := range statements {
 		res := i.execute(statement)
 		if res.Err != nil {
@@ -123,7 +142,7 @@ func (i *Interpreter) VisitLiteral(expr expression.LiteralExpr) expr.LoxValueRes
 }
 
 func (i *Interpreter) VisitUnary(expr expr.UnaryExpr) expr.LoxValueResult {
-	
+
 	right := i.Evaluate(expr.Right)
 	if right.Error != nil {
 		return right
@@ -146,15 +165,11 @@ func (i *Interpreter) VisitUnary(expr expr.UnaryExpr) expr.LoxValueResult {
 
 }
 
-func getLoxVaule(r *visitor.VisitorResult) loxvalue.LoxValue {
-	return r.Result.(loxvalue.LoxValue)
-}
-
 func (i *Interpreter) VisitBinary(expr expr.BinaryExpr) expr.LoxValueResult {
-	
+
 	left := i.Evaluate(expr.Left)
 	right := i.Evaluate(expr.Right)
-	
+
 	if left.Error != nil {
 		return left
 	}
