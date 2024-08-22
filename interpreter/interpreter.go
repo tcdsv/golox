@@ -16,27 +16,51 @@ type Interpreter struct {
 	env     *Environment
 }
 
+func (i *Interpreter) VisitWhileStatement(WhileStmt stmt.WhileStmt) *visitor.VisitorResult {
+
+	var conditionValue loxvalue.LoxValue
+	condition := i.Evaluate(WhileStmt.Condition)
+	if condition.Error != nil {
+		return visitor.NewVisitorResult(nil, condition.Error)
+	}
+	conditionValue = condition.Value
+
+	for loxvalue.IsTruthy(conditionValue) {
+		res := i.execute(WhileStmt.Body)
+		if res.Err != nil {
+			return res
+		}
+		condition := i.Evaluate(WhileStmt.Condition)
+		if condition.Error != nil {
+			return visitor.NewVisitorResult(nil, condition.Error)
+		}
+		conditionValue = condition.Value
+	} 
+
+	return visitor.NewVisitorResult(nil, nil)
+
+}
 
 func (i *Interpreter) VisitLogical(LogicalExpr expr.LogicalExpr) expr.LoxValueResult {
 
-	left := i.Evaluate(LogicalExpr.Left) 
+	left := i.Evaluate(LogicalExpr.Left)
 	if left.Error != nil {
 		return left
 	}
 
 	operator := LogicalExpr.Operator.Type
-	switch (operator) {
-		case tkn.OR:
-	
-			if loxvalue.IsTruthy(left.Value) {
-				return left
-			}
-	
-		case tkn.AND:
-		
-			if !loxvalue.IsTruthy(left.Value) {
-				return left
-			}
+	switch operator {
+	case tkn.OR:
+
+		if loxvalue.IsTruthy(left.Value) {
+			return left
+		}
+
+	case tkn.AND:
+
+		if !loxvalue.IsTruthy(left.Value) {
+			return left
+		}
 	}
 	return i.Evaluate(LogicalExpr.Right)
 
@@ -44,13 +68,13 @@ func (i *Interpreter) VisitLogical(LogicalExpr expr.LogicalExpr) expr.LoxValueRe
 
 // VisitIfStatement implements stmt.StmtVisitor.
 func (i *Interpreter) VisitIfStatement(IfStmt stmt.IfStmt) *visitor.VisitorResult {
-	
+
 	conditionValue := i.Evaluate(IfStmt.Condition)
 	if conditionValue.Error != nil {
 		return visitor.NewVisitorResult(nil, conditionValue.Error)
 	}
 
-	isConditionTrue := loxvalue.IsTruthy(conditionValue.Value) 
+	isConditionTrue := loxvalue.IsTruthy(conditionValue.Value)
 	if isConditionTrue {
 		return i.execute(IfStmt.ThenBrnach)
 	} else if IfStmt.ElseBranch != nil {

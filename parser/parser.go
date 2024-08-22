@@ -124,7 +124,29 @@ func (p *Parser) statement() (stmt.Stmt, error) {
 	if p.match(tkn.LEFT_BRACE) {
 		return p.blockStatement()
 	}
+	if p.match(tkn.WHILE) {
+		return p.while()
+	}
 	return p.expressionStatement()
+}
+
+func (p *Parser) while() (stmt.Stmt, error) {
+
+	p.consume(tkn.LEFT_PAREN, "Expect '(' after 'while'.")
+	condition, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
+	p.consume(tkn.RIGHT_PAREN, "Expect '(' after while condition.")
+	body, err := p.statement()
+	if err != nil {
+		return nil, err
+	}
+	return stmt.WhileStmt{
+		Condition: condition,
+		Body: body,
+	}, nil
+
 }
 
 func (p *Parser) ifStatement() (stmt.Stmt, error) {
