@@ -23,15 +23,23 @@ func main() {
 		os.Exit(EX_USAGE)
 	}
 	if len(args) == 1 {
-		fmt.Println("Loading from file is not implemented")
-		os.Exit(EX_USAGE)
-		// runFile()
+		err = runFile(args[0])
 	} else {
 		err = runPrompt()
 	}
 	if err != nil {
 		fmt.Println(err.Error())
 	}
+}
+
+func runFile(filename string) error {
+	content, err := os.ReadFile(filename)
+	if err != nil {
+		return fmt.Errorf("failed to read file: %v", err)
+	}
+	interpreter := interpreter.NewInterpreter()
+	Run(string(content), interpreter)
+	return nil
 }
 
 func runPrompt() error {

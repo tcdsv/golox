@@ -29,24 +29,17 @@ func (i *Interpreter) VisitLogical(LogicalExpr expr.LogicalExpr) expr.LoxValueRe
 		case tkn.OR:
 	
 			if loxvalue.IsTruthy(left.Value) {
-				return expression.LoxValueResult{Value: loxvalue.Boolean{Value: true}}
+				return left
 			}
 	
 		case tkn.AND:
 		
 			if !loxvalue.IsTruthy(left.Value) {
-				return expression.LoxValueResult{Value: loxvalue.Boolean{Value: false}}
+				return left
 			}
 	}
+	return i.Evaluate(LogicalExpr.Right)
 
-	right := i.Evaluate(LogicalExpr.Right)
-	if right.Error != nil {
-		return right
-	}
-	return expression.LoxValueResult{
-		Value: loxvalue.Boolean{Value: loxvalue.IsTruthy(right.Value)},
-	}
-	
 }
 
 // VisitIfStatement implements stmt.StmtVisitor.
