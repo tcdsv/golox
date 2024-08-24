@@ -5,6 +5,7 @@ import (
 	"golox/expr"
 	"golox/stmt"
 	tkn "golox/token"
+	loxvalue "golox/value"
 )
 
 type Parser struct {
@@ -115,6 +116,10 @@ func (p *Parser) varDeclaration() (stmt.Stmt, error) {
 }
 
 func (p *Parser) statement() (stmt.Stmt, error) {
+	
+	if p.match(tkn.FOR) {
+		return p.forStatement()
+	}
 	if p.match(tkn.IF) {
 		return p.ifStatement()
 	}
@@ -128,7 +133,89 @@ func (p *Parser) statement() (stmt.Stmt, error) {
 		return p.while()
 	}
 	return p.expressionStatement()
+
 }
+
+func (p *Parser) forStatement() (stmt.Stmt, error) {
+
+	var err error
+	err = p.consume(tkn.LEFT_PAREN, "Expect '(' after 'for'.");
+	if err != nil {
+		return nil, err
+	}
+
+	var initializer stmt.Stmt
+	if p.match(tkn.SEMICOLON) {
+		initializer = nil
+	} else if p.match(tkn.VAR) {
+		initializer, err = p.varDeclaration()
+	} else {
+		initializer, err = p.expressionStatement()
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	var condition expr.Expr
+	if !p.check(tkn.SEMICOLON) {
+		condition, err = p.expression()
+		if err != nil {
+			return nil, err
+		}
+	}
+    err = p.consume(tkn.SEMICOLON, "Expect ';' after loop condition.");
+	if err != nil {
+		return nil, err
+	}
+
+	var increment expr.Expr
+	if !p.check(tkn.RIGHT_PAREN) {
+		increment, err = p.expression();
+		if err != nil {
+			return nil, err
+		}
+	}
+	err = p.consume(tkn.RIGHT_PAREN, "Expect ')' after for clauses.");
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := p.statement()
+	if err != nil {
+		return nil, err
+	}
+
+	if increment != nil {
+		body = stmt.BlockStmt{
+			Statements: []stmt.Stmt{
+				body, stmt.ExprStmt{E: increment},
+			},
+		}
+	}
+
+	if condition == nil {
+		condition = expr.LiteralExpr{
+			Value: loxvalue.Boolean{Value: true},
+		}
+	}
+
+	body = stmt.WhileStmt{
+		Condition: condition,
+		Body: body,
+	}
+
+	if initializer != nil {
+		body = stmt.BlockStmt{
+			Statements: []stmt.Stmt{
+				initializer, body,
+			},
+		}
+	}
+
+	return body, nil
+
+}
+
 
 func (p *Parser) while() (stmt.Stmt, error) {
 
