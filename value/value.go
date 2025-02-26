@@ -13,29 +13,7 @@ type LoxValue interface {
 }
 
 func IsEqual(a LoxValue, b LoxValue) bool {
-	if a.Type() != b.Type() {
-		return false
-	}
-	if a.Type() == NIL {
-		return true
-	}
-
-	var firstValue interface{}
-	var secondValue interface{}
-
-	switch a.Type() {
-	case BOOLEAN:
-		firstValue = a.(Boolean).Value
-		secondValue = b.(Boolean).Value
-	case NUMBER:
-		firstValue = a.(Number).Value
-		secondValue = b.(Number).Value
-	case STRING:
-		firstValue = a.(String).Value
-		secondValue = b.(String).Value
-	}
-
-	return firstValue == secondValue
+	return a == b
 }
 
 func IsTruthy(value LoxValue) bool {
