@@ -10,42 +10,37 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestScan_Bang(t *testing.T) {
-	s := scanner.NewScanner("!true")
-	tokens, errors := s.Scan()
-	require.Empty(t, errors)
-	require.Len(t, tokens, 3)
-	bang := tokens[0]
-	require.Equal(t, tkn.BANG, bang.Type)
-	require.Equal(t, nil, bang.Literal)
-	keyword := tokens[1]
-	require.Equal(t, tkn.TRUE, keyword.Type)
+func TestTokens(t *testing.T) {
+
+	tests := []struct {
+		input   string
+		token 	tkn.Token
+	}{
+		{"!", tkn.NewToken(tkn.BANG, "!", nil, 1)},
+		{"1", tkn.NewToken(tkn.NUMBER, "1", &loxvalue.Number{Value: 1}, 1)},
+		{"(", tkn.NewToken(tkn.LEFT_PAREN, "(", nil, 1)},
+	}
+
+	for _, test := range tests {
+		testToken(t, test.input, test.token)
+	}
+
 }
 
-func TestScan_Number(t *testing.T) {
-	s := scanner.NewScanner("1")
+func testToken(t *testing.T, input string, expected tkn.Token) {
+	
+	s := scanner.NewScanner(input)
 	tokens, errors := s.Scan()
 	require.Empty(t, errors)
 	require.Len(t, tokens, 2)
-	token := tokens[0]
-	require.Equal(t, tkn.NUMBER, token.Type)
-	require.Equal(t, loxvalue.NUMBER, token.Literal.Type()) 
-	number, ok := token.Literal.(*loxvalue.Number)
-	require.True(t, ok)
-	require.Equal(t, float64(1), number.Value)
-}
+	
+	require.Equal(t, tokens[0].Type, expected.Type)
+	require.Equal(t, tokens[0].Line, expected.Line)
+	require.Equal(t, tokens[0].Lexeme, expected.Lexeme)
+	require.Equal(t, tokens[0].Literal, expected.Literal)
 
-func TestScan_LeftParen(t *testing.T) {
-	s := scanner.NewScanner("(")
-	tokens, errors := s.Scan()
-	require.Empty(t, errors)
-	require.Len(t, tokens, 2)
-	leftParenToken := tokens[0]
-	require.Equal(t, tkn.LEFT_PAREN, leftParenToken.Type)
-	require.Equal(t, "(", leftParenToken.Lexeme)
-	require.Equal(t, nil, leftParenToken.Literal)
-	eofToken := tokens[1]
-	require.Equal(t, tkn.EOF, eofToken.Type)
+	require.Equal(t, tokens[len(tokens)-1].Type, tkn.EOF)
+
 }
 
 func TestScan_UnterminatedString(t *testing.T) {
