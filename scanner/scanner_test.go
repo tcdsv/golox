@@ -33,12 +33,7 @@ func testToken(t *testing.T, input string, expected tkn.Token) {
 	tokens, errors := s.Scan()
 	require.Empty(t, errors)
 	require.Len(t, tokens, 2)
-	
-	require.Equal(t, tokens[0].Type, expected.Type)
-	require.Equal(t, tokens[0].Line, expected.Line)
-	require.Equal(t, tokens[0].Lexeme, expected.Lexeme)
-	require.Equal(t, tokens[0].Literal, expected.Literal)
-
+	require.Equal(t, tokens[0], expected)
 	require.Equal(t, tokens[len(tokens)-1].Type, tkn.EOF)
 
 }
