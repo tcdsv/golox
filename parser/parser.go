@@ -89,7 +89,7 @@ func (p *Parser) declaration() (stmt.Stmt, error) {
 
 func (p *Parser) varDeclaration() (stmt.Stmt, error) {
 
-	err := p.consume(tkn.IDENTIFIER, "Expect variable name.")
+	err := p.consume(tkn.IDENTIFIER, loxerror.PARSE_ERROR_VARIABLE_EXPR_MISSING_NAME)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func (p *Parser) varDeclaration() (stmt.Stmt, error) {
 		} 
 	}
 
-	err = p.consume(tkn.SEMICOLON, "Expect ';' after variable declaration.")
+	err = p.consume(tkn.SEMICOLON, loxerror.PARSE_ERROR_VARIABLE_EXPR_MISSING_SEMICOLON)
 	if err != nil {
 		return nil, err
 	}
@@ -552,7 +552,7 @@ func (p *Parser) primary() (expr.Expr, error) {
 			return nil, err
 		}
 
-		err = p.consume(tkn.RIGHT_PAREN, "Expect ')' after expression.")
+		err = p.consume(tkn.RIGHT_PAREN, loxerror.PARSE_ERROR_MISSING_RIGHT_PAREN)
 		if err != nil {
 			return nil, err
 		}

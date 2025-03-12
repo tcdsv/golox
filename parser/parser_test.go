@@ -163,7 +163,23 @@ func TestParser_GroupingExpressionError(t *testing.T) {
 		input   	string
 		expected	*loxerror.Error
 	}{
-		{"(3;", &loxerror.Error{Line: 1, Where: " at ';'", Message: "Expect ')' after expression."}},
+		{"(3;", &loxerror.Error{Line: 1, Where: " at ';'", Message: loxerror.PARSE_ERROR_MISSING_RIGHT_PAREN}},
+	}
+
+	for _, test := range tests {
+		testExpressionError(t, test.input, test.expected)
+	}
+
+}
+
+func TestParser_VariableExpressionError(t *testing.T) {
+
+	tests := []struct {
+		input   	string
+		expected	*loxerror.Error
+	}{
+		{"var;", &loxerror.Error{Line: 1, Where: " at ';'", Message: loxerror.PARSE_ERROR_VARIABLE_EXPR_MISSING_NAME}},
+		{"var a", &loxerror.Error{Line: 1, Where: " at end", Message: loxerror.PARSE_ERROR_VARIABLE_EXPR_MISSING_SEMICOLON}},
 	}
 
 	for _, test := range tests {
@@ -180,7 +196,7 @@ func testExpression(t *testing.T, input string, expected stmt.Stmt) {
 	parser := parser.NewParser(tokens)
 	statements, errors := parser.Parse()
 	require.Empty(t, errors)
-	require.Equal(t, statements[0], expected)
+	require.Equal(t, expected, statements[0])
 
 }
 
@@ -192,6 +208,6 @@ func testExpressionError(t *testing.T, input string, expected *loxerror.Error) {
 	parser := parser.NewParser(tokens)
 	_, errors = parser.Parse()
 	require.NotEmpty(t, errors)
-	require.Equal(t, errors[0], expected)
+	require.Equal(t, expected, errors[0])
 
 }

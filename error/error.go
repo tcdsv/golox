@@ -5,6 +5,10 @@ import (
 	tkn "golox/token"
 )
 
+const PARSE_ERROR_MISSING_RIGHT_PAREN = "Expect ')' after expression."
+const PARSE_ERROR_VARIABLE_EXPR_MISSING_NAME = "Expect variable name."
+const PARSE_ERROR_VARIABLE_EXPR_MISSING_SEMICOLON = "Expect ';' after variable declaration."
+
 type Error struct {
 	Line    int
 	Where   string
