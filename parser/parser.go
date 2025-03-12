@@ -563,7 +563,7 @@ func (p *Parser) primary() (expr.Expr, error) {
 
 	}
 
-	return nil, loxerror.NewErrorFromToken(p.peek(), "Expect expression.")
+	return nil, loxerror.NewErrorFromToken(p.peek(), loxerror.PARSE_ERROR_MISSING_EXPRESSION)
 }
 
 func (p *Parser) consume(tokenType tkn.TokenType, message string) error {

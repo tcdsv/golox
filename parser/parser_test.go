@@ -157,6 +157,21 @@ func TestParser_VariableExpressions(t *testing.T) {
 
 }
 
+func TestParser_ExpressionError(t *testing.T) {
+
+	tests := []struct {
+		input   	string
+		expected	*loxerror.Error
+	}{
+		{");", &loxerror.Error{Line: 1, Where: " at ')'", Message: loxerror.PARSE_ERROR_MISSING_EXPRESSION}},
+	}
+
+	for _, test := range tests {
+		testExpressionError(t, test.input, test.expected)
+	}
+
+}
+
 func TestParser_GroupingExpressionError(t *testing.T) {
 
 	tests := []struct {
