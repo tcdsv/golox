@@ -1,13 +1,13 @@
 package parser_test
 
 import (
+	loxerror "golox/error"
 	"golox/expr"
 	"golox/parser"
 	"golox/scanner"
 	"golox/stmt"
 	tkn "golox/token"
 	loxvalue "golox/value"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -157,6 +157,21 @@ func TestParser_VariableExpressions(t *testing.T) {
 
 }
 
+func TestParser_GroupingExpressionError(t *testing.T) {
+
+	tests := []struct {
+		input   	string
+		expected	*loxerror.Error
+	}{
+		{"(3;", &loxerror.Error{Line: 1, Where: " at ';'", Message: "Expect ')' after expression."}},
+	}
+
+	for _, test := range tests {
+		testExpressionError(t, test.input, test.expected)
+	}
+
+}
+
 func testExpression(t *testing.T, input string, expected stmt.Stmt) {
 
 	scanner := scanner.NewScanner(input)
@@ -169,42 +184,14 @@ func testExpression(t *testing.T, input string, expected stmt.Stmt) {
 
 }
 
-func TestParser_GroupingMissingParen(t *testing.T) {
-	file, err := loadFile("grouping_error.lox")
-	require.NoError(t, err)
-	_, errors := parse(file)
-	require.Len(t, errors, 1)
-}
+func testExpressionError(t *testing.T, input string, expected *loxerror.Error) {
 
-func TestParser_MissingExpression(t *testing.T) {
-	t.Skip()
-	//todo: refactor test
-	file, err := loadFile("missing_expression_error.lox")
-	require.NoError(t, err)
-	_, errors := parse(file)
-	require.Len(t, errors, 1)
-}
+	scanner := scanner.NewScanner(input)
+	tokens, errors := scanner.Scan()
+	require.Empty(t, errors)
+	parser := parser.NewParser(tokens)
+	_, errors = parser.Parse()
+	require.NotEmpty(t, errors)
+	require.Equal(t, errors[0], expected)
 
-func parse(source string) ([]stmt.Stmt, []error) {
-	s := scanner.NewScanner(source)
-	tokens, errors := s.Scan()
-	if len(errors) > 0 {
-		return nil, errors
-	}
-	p := parser.NewParser(tokens)
-	return p.Parse()
-	/*if err != nil {
-		errors := []error{err}
-		return nil, errors
-	}
-	return statements, nil*/
 }
-
-func loadFile(path string) (string, error) {
-	content, err := os.ReadFile(path)
-	if err != nil {
-		return "", err
-	}
-	return string(content), nil
-}
-
