@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestParser_Expressions(t *testing.T) {
+func TestParser_LiteralExpressions(t *testing.T) {
 	
 	tests := []struct {
 		input   	string
@@ -21,13 +21,125 @@ func TestParser_Expressions(t *testing.T) {
 	}{
 		{"\"foo\";", stmt.ExprStmt{E: expr.LiteralExpr{Value: loxvalue.NewString("foo")}}},
 		
+		{"123;", stmt.ExprStmt{
+            E: expr.LiteralExpr{Value: &loxvalue.Number{Value: 123}},
+        }},
+
+		{"true;", stmt.ExprStmt{
+            E: expr.LiteralExpr{Value: loxvalue.NewBoolean(true)},
+        }},
+
+		{"nil;", stmt.ExprStmt{
+            E: expr.LiteralExpr{Value: &loxvalue.Nil{}},
+        }},
+	}
+
+	for _, test := range tests {
+		testExpression(t, test.input, test.expected)
+	}
+
+}
+
+func TestParser_UnaryExpressions(t *testing.T) {
+
+	tests := []struct {
+		input   	string
+		expected	stmt.Stmt
+	}{
 		{"!true;", stmt.ExprStmt{
 			E: expr.UnaryExpr{
 				Operator: tkn.NewToken(tkn.BANG, "!", nil, 1),
 				Right: expr.LiteralExpr{Value: loxvalue.NewBoolean(true)},
 			},
 		}},
-		
+	}
+
+	for _, test := range tests {
+		testExpression(t, test.input, test.expected)
+	}
+
+}
+
+func TestParser_BinaryExpressions(t *testing.T) {
+
+	tests := []struct {
+		input   	string
+		expected	stmt.Stmt
+	}{
+        {"1 + 2;", stmt.ExprStmt{
+            E: expr.BinaryExpr{
+                Left:     expr.LiteralExpr{Value: &loxvalue.Number{Value: 1}},
+                Operator: tkn.NewToken(tkn.PLUS, "+", nil, 1),
+                Right:    expr.LiteralExpr{Value: &loxvalue.Number{Value: 2}},
+            },
+        }},
+			
+	}
+
+	for _, test := range tests {
+		testExpression(t, test.input, test.expected)
+	}
+
+}
+
+func TestParser_LogicalExpressions(t *testing.T) {
+
+	tests := []struct {
+		input   	string
+		expected	stmt.Stmt
+	}{
+        {"true or false;", stmt.ExprStmt{
+            E: expr.LogicalExpr{
+                Left:     expr.LiteralExpr{Value: loxvalue.NewBoolean(true)},
+                Operator: tkn.NewToken(tkn.OR, "or", nil, 1),
+                Right:    expr.LiteralExpr{Value: loxvalue.NewBoolean(false)},
+            },
+        }},
+	}
+
+	for _, test := range tests {
+		testExpression(t, test.input, test.expected)
+	}
+
+}
+
+func TestParser_GroupingExpressions(t *testing.T) {
+
+	tests := []struct {
+		input   	string
+		expected	stmt.Stmt
+	}{
+		{"(3);", stmt.ExprStmt{
+            E: expr.GroupingExpr{
+                Expr: expr.LiteralExpr{Value: &loxvalue.Number{Value: 3}},
+            },
+        }},
+	}
+
+	for _, test := range tests {
+		testExpression(t, test.input, test.expected)
+	}
+
+}
+
+func TestParser_VariableExpressions(t *testing.T) {
+	
+	tests := []struct {
+		input   	string
+		expected	stmt.Stmt
+	}{
+		{"a;", stmt.ExprStmt{
+            E: expr.VariableExpr{
+                Name: tkn.NewToken(tkn.IDENTIFIER, "a", nil, 1),
+            },
+        }},
+
+        {"a = 42;", stmt.ExprStmt{
+            E: expr.AssignExpr{
+                Name:  tkn.NewToken(tkn.IDENTIFIER, "a", nil, 1),
+                Right: expr.LiteralExpr{Value:  &loxvalue.Number{Value: 42}},
+            },
+        }},
 	}
 
 	for _, test := range tests {
