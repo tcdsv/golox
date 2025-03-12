@@ -13,6 +13,41 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestParser_Expressions(t *testing.T) {
+	
+	tests := []struct {
+		input   	string
+		expected	stmt.Stmt
+	}{
+		{"\"foo\";", stmt.ExprStmt{E: expr.LiteralExpr{Value: loxvalue.NewString("foo")}}},
+		
+		{"!true;", stmt.ExprStmt{
+			E: expr.UnaryExpr{
+				Operator: tkn.NewToken(tkn.BANG, "!", nil, 1),
+				Right: expr.LiteralExpr{Value: loxvalue.NewBoolean(true)},
+			},
+		}},
+		
+	}
+
+	for _, test := range tests {
+		testExpression(t, test.input, test.expected)
+	}
+
+}
+
+func testExpression(t *testing.T, input string, expected stmt.Stmt) {
+
+	scanner := scanner.NewScanner(input)
+	tokens, errors := scanner.Scan()
+	require.Empty(t, errors)
+	parser := parser.NewParser(tokens)
+	statements, errors := parser.Parse()
+	require.Empty(t, errors)
+	require.Equal(t, statements[0], expected)
+
+}
+
 func TestParser_VariableDeclarationWithExpression(t *testing.T) {
 	file, err := loadFile("variable_declaration_2.lox")
 	require.NoError(t, err)
@@ -37,21 +72,6 @@ func TestParser_VariableDeclaration(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, tkn.IDENTIFIER, varStmt.Name.Type)
 	require.Nil(t, varStmt.Initializer)
-}
-
-func TestParser_Unary(t *testing.T) {
-	file, err := loadFile("unary.lox")
-	require.NoError(t, err)
-	statements, errors := parse(file)
-	require.Empty(t, errors)
-	unaryExpr, ok := statements[0].(stmt.ExprStmt).E.(expr.UnaryExpr)
-	require.True(t, ok)
-	require.Equal(t, tkn.BANG, unaryExpr.Operator.Type)
-	literalExpr, ok := unaryExpr.Right.(expr.LiteralExpr)
-	require.True(t, ok)
-	literalBool, ok := literalExpr.Value.(*loxvalue.Boolean)
-	require.True(t, ok)
-	require.Equal(t, true, literalBool.Value)
 }
 
 func TestParser_String(t *testing.T) {
