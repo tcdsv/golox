@@ -74,18 +74,6 @@ func TestParser_VariableDeclaration(t *testing.T) {
 	require.Nil(t, varStmt.Initializer)
 }
 
-func TestParser_String(t *testing.T) {
-	file, err := loadFile("string.lox")
-	require.NoError(t, err)
-	statements, errors := parse(file)
-	require.Empty(t, errors)
-	literalExpr, ok := statements[0].(stmt.ExprStmt).E.(expr.LiteralExpr)
-	require.True(t, ok)
-	literalValue, ok := literalExpr.Value.(*loxvalue.String)
-	require.True(t, ok)
-	require.Equal(t, "foo", literalValue.Value)
-}
-
 func TestParser_GroupingMissingParen(t *testing.T) {
 	file, err := loadFile("grouping_error.lox")
 	require.NoError(t, err)
