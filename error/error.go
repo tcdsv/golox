@@ -10,6 +10,9 @@ const PARSE_ERROR_VARIABLE_EXPR_MISSING_NAME = "Expect variable name."
 const PARSE_ERROR_VARIABLE_EXPR_MISSING_SEMICOLON = "Expect ';' after variable declaration."
 const PARSE_ERROR_MISSING_EXPRESSION = "Expect expression."
 
+const SCANNER_ERROR_UNEXPECTED_CHARACTER = "Unexpected character."
+const SCANNER_ERROR_UNTERMINATED_STRING = "Unterminated string."
+
 type Error struct {
 	Line    int
 	Where   string

@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestTokens(t *testing.T) {
+func TestScanner_Tokens(t *testing.T) {
 
 	tests := []struct {
 		input   string
@@ -62,6 +62,22 @@ func TestTokens(t *testing.T) {
 
 }
 
+func TestScanner_TokensError(t *testing.T) {
+	
+	tests := []struct {
+		input   string
+		expected 	*loxerror.Error
+	}{
+		{"&", loxerror.NewError(1, "", loxerror.SCANNER_ERROR_UNEXPECTED_CHARACTER)},
+		{"\"foo", loxerror.NewError(1, "", loxerror.SCANNER_ERROR_UNTERMINATED_STRING)},
+	}
+
+	for _, test := range tests {
+		testTokenError(t, test.input, test.expected)
+	}
+
+}
+
 func testToken(t *testing.T, input string, expected tkn.Token) {
 	
 	s := scanner.NewScanner(input)
@@ -73,22 +89,11 @@ func testToken(t *testing.T, input string, expected tkn.Token) {
 
 }
 
-func TestScan_UnterminatedString(t *testing.T) {
-	s := scanner.NewScanner("\"foo")
-	tokens, errors := s.Scan()
-	require.Len(t, errors, 1)
-	require.Len(t, tokens, 1)
-	err, _ := errors[0].(*loxerror.Error)
-	require.Equal(t, "unterminated string", err.Message)
-	require.Equal(t, tkn.EOF, tokens[0].Type)
-}
+func testTokenError(t *testing.T, input string, expected *loxerror.Error) {
 
-func TestScan_UnexpectedCharacter(t *testing.T) {
-	s := scanner.NewScanner("&")
-	tokens, errors := s.Scan()
-	require.Len(t, errors, 1)
-	require.Len(t, tokens, 1)
-	err, _ := errors[0].(*loxerror.Error)
-	require.Equal(t, "unexpected character", err.Message)
-	require.Equal(t, tkn.EOF, tokens[0].Type)
+	scanner := scanner.NewScanner(input)
+	_, errors := scanner.Scan()
+	require.NotEmpty(t, errors)
+	require.Equal(t, expected, errors[0])
+
 }

@@ -71,7 +71,7 @@ func (s *Scanner) scanString() *loxerror.Error {
 	}
 
 	if s.isAtEnd() {
-		return loxerror.NewError(s.line, "", "unterminated string")
+		return loxerror.NewError(s.line, "", loxerror.SCANNER_ERROR_UNTERMINATED_STRING)
 	}
 
 	s.advance()
@@ -155,7 +155,7 @@ func (s *Scanner) scanToken() error {
 		} else if isAlpha(c) {
 			s.scanIdentifier()
 		} else {
-			return loxerror.NewError(s.line, "", "unexpected character")
+			return loxerror.NewError(s.line, "", loxerror.SCANNER_ERROR_UNEXPECTED_CHARACTER)
 		}
 	}
 	return nil
