@@ -73,7 +73,6 @@ func TestParser_BinaryExpressions(t *testing.T) {
                 Right:    expr.LiteralExpr{Value: &loxvalue.Number{Value: 2}},
             },
         }},
-			
 	}
 
 	for _, test := range tests {
@@ -140,6 +139,16 @@ func TestParser_VariableExpressions(t *testing.T) {
                 Right: expr.LiteralExpr{Value:  &loxvalue.Number{Value: 42}},
             },
         }},
+
+		{"var x;", stmt.VarStmt{
+            Name: tkn.NewToken(tkn.IDENTIFIER, "x", nil, 1),
+            Initializer: nil,
+        }},
+
+        {"var y = 10;", stmt.VarStmt{
+            Name: tkn.NewToken(tkn.IDENTIFIER, "y", nil, 1),
+            Initializer: expr.LiteralExpr{Value: &loxvalue.Number{Value: 10}},
+        }},
 	}
 
 	for _, test := range tests {
@@ -158,32 +167,6 @@ func testExpression(t *testing.T, input string, expected stmt.Stmt) {
 	require.Empty(t, errors)
 	require.Equal(t, statements[0], expected)
 
-}
-
-func TestParser_VariableDeclarationWithExpression(t *testing.T) {
-	file, err := loadFile("variable_declaration_2.lox")
-	require.NoError(t, err)
-	statements, errors := parse(file)
-	require.Empty(t, errors)
-	varStmt, ok := statements[0].(stmt.VarStmt)
-	require.True(t, ok)
-	require.Equal(t, tkn.IDENTIFIER, varStmt.Name.Type)
-	require.NotNil(t, varStmt.Initializer)
-	e, ok := varStmt.Initializer.(expr.LiteralExpr)
-	require.True(t, ok)
-	require.Equal(t, loxvalue.STRING, e.Value.Type())
-	require.Equal(t, "foo", e.Value.ToString())
-}
-
-func TestParser_VariableDeclaration(t *testing.T) {
-	file, err := loadFile("variable_declaration_1.lox")
-	require.NoError(t, err)
-	statements, errors := parse(file)
-	require.Empty(t, errors)
-	varStmt, ok := statements[0].(stmt.VarStmt)
-	require.True(t, ok)
-	require.Equal(t, tkn.IDENTIFIER, varStmt.Name.Type)
-	require.Nil(t, varStmt.Initializer)
 }
 
 func TestParser_GroupingMissingParen(t *testing.T) {
