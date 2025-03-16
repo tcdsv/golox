@@ -1,5 +1,7 @@
 package loxvalue
 
+import "reflect"
+
 const (
 	NIL = iota
 	BOOLEAN
@@ -13,7 +15,7 @@ type LoxValue interface {
 }
 
 func IsEqual(a LoxValue, b LoxValue) bool {
-	return a == b
+	return reflect.DeepEqual(a, b)
 }
 
 func IsTruthy(value LoxValue) bool {

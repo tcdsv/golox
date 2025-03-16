@@ -3,27 +3,26 @@ package stmt
 import (
 	"golox/expr"
 	"golox/token"
-	"golox/visitor"
 )
 
 type StmtVisitor interface {
-	VisitExpressionStatement(exprStmt ExprStmt) *visitor.VisitorResult
-	VisitPrintStatement(printStmt PrintStmt) *visitor.VisitorResult
-	VisitVariableStatement(variableStmt VarStmt) *visitor.VisitorResult
-	VisitBlockStatement(BlockStmt BlockStmt) *visitor.VisitorResult
-	VisitIfStatement(IfStmt IfStmt) *visitor.VisitorResult
-	VisitWhileStatement(WhileStmt WhileStmt) *visitor.VisitorResult
+	VisitExpressionStatement(exprStmt ExprStmt) (interface{}, error)
+	VisitPrintStatement(printStmt PrintStmt) (interface{}, error)
+	VisitVariableStatement(variableStmt VarStmt) (interface{}, error)
+	VisitBlockStatement(BlockStmt BlockStmt) (interface{}, error)
+	VisitIfStatement(IfStmt IfStmt) (interface{}, error)
+	VisitWhileStatement(WhileStmt WhileStmt) (interface{}, error)
 }
 
 type Stmt interface {
-	Accept(visitor StmtVisitor) *visitor.VisitorResult
+	Accept(visitor StmtVisitor) (interface{}, error)
 }
 
 type ExprStmt struct {
 	E expr.Expr
 }
 
-func (es ExprStmt) Accept(visitor StmtVisitor) *visitor.VisitorResult {
+func (es ExprStmt) Accept(visitor StmtVisitor) (interface{}, error) {
 	return visitor.VisitExpressionStatement(es)
 }
 
@@ -31,8 +30,9 @@ type PrintStmt struct {
 	E expr.Expr
 }
 
-func (ps PrintStmt) Accept(visitor StmtVisitor) *visitor.VisitorResult {
-	return visitor.VisitPrintStatement(ps)
+func (ps PrintStmt) Accept(visitor StmtVisitor) (interface{}, error) {
+	return nil, nil
+	// return visitor.VisitPrintStatement(ps)
 }
 
 type VarStmt struct {
@@ -40,16 +40,18 @@ type VarStmt struct {
 	Initializer expr.Expr
 }
 
-func (s VarStmt) Accept(visitor StmtVisitor) *visitor.VisitorResult {
-	return visitor.VisitVariableStatement(s)
+func (s VarStmt) Accept(visitor StmtVisitor) (interface{}, error) {
+	return nil, nil
+	// return visitor.VisitVariableStatement(s)
 }
 
 type BlockStmt struct {
 	Statements []Stmt
 }
 
-func (s BlockStmt) Accept(visitor StmtVisitor) *visitor.VisitorResult {
-	return visitor.VisitBlockStatement(s)
+func (s BlockStmt) Accept(visitor StmtVisitor) (interface{}, error) {
+	return nil, nil
+	// return visitor.VisitBlockStatement(s)
 }
 
 type IfStmt struct {
@@ -58,8 +60,9 @@ type IfStmt struct {
 	ElseBranch Stmt
 }
 
-func (s IfStmt) Accept(visitor StmtVisitor) *visitor.VisitorResult {
-	return visitor.VisitIfStatement(s)
+func (s IfStmt) Accept(visitor StmtVisitor) (interface{}, error) {
+	return nil, nil
+	// return visitor.VisitIfStatement(s)
 }
 
 type WhileStmt struct { 
@@ -67,6 +70,7 @@ type WhileStmt struct {
 	Body Stmt
 }
 
-func (s WhileStmt) Accept(visitor StmtVisitor) *visitor.VisitorResult {
-	return visitor.VisitWhileStatement(s)
+func (s WhileStmt) Accept(visitor StmtVisitor) (interface{}, error) {
+	return nil, nil
+	// return visitor.VisitWhileStatement(s)
 }

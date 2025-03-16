@@ -1,314 +1,203 @@
 package interpreter
 
 import (
-	"fmt"
 	loxerror "golox/error"
 	"golox/expr"
 	expression "golox/expr"
 	"golox/stmt"
 	tkn "golox/token"
 	loxvalue "golox/value"
-	visitor "golox/visitor"
 )
 
 type Interpreter struct {
-	Results []*visitor.VisitorResult
 	env     *Environment
 }
 
-func (i *Interpreter) VisitWhileStatement(WhileStmt stmt.WhileStmt) *visitor.VisitorResult {
-
-	var conditionValue loxvalue.LoxValue
-	condition := i.Evaluate(WhileStmt.Condition)
-	if condition.Error != nil {
-		return visitor.NewVisitorResult(nil, condition.Error)
+func NewInterpreter() *Interpreter {
+	return &Interpreter{
+		env:     NewGlobalEnv(),
 	}
-	conditionValue = condition.Value
-
-	for loxvalue.IsTruthy(conditionValue) {
-		res := i.execute(WhileStmt.Body)
-		if res.Err != nil {
-			return res
-		}
-		condition := i.Evaluate(WhileStmt.Condition)
-		if condition.Error != nil {
-			return visitor.NewVisitorResult(nil, condition.Error)
-		}
-		conditionValue = condition.Value
-	} 
-
-	return visitor.NewVisitorResult(nil, nil)
-
 }
 
-func (i *Interpreter) VisitLogical(LogicalExpr expr.LogicalExpr) expr.LoxValueResult {
+// func (i *Interpreter) Interpret(statements []stmt.Stmt) {
+// 	for _, statement := range statements {
+// 		_, err := i.execute(statement)
+// 		if err != nil {
+// 			return 
+// 		}
+// 	}
+// }
 
-	left := i.Evaluate(LogicalExpr.Left)
-	if left.Error != nil {
-		return left
+func (i *Interpreter) VisitLiteral(expr expression.LiteralExpr) (interface{}, error) {
+	return expr.Value, nil
+}
+
+func (i *Interpreter) VisitLogical(LogicalExpr expr.LogicalExpr) (interface{}, error) {
+
+	left, err := i.Evaluate(LogicalExpr.Left)
+	if err != nil {
+		return nil, err
+	}
+
+	leftValue, ok := left.(loxvalue.LoxValue)
+	if !ok {
+		return nil, err //todo: define error message
 	}
 
 	operator := LogicalExpr.Operator.Type
 	switch operator {
 	case tkn.OR:
 
-		if loxvalue.IsTruthy(left.Value) {
-			return left
+		if loxvalue.IsTruthy(leftValue) {
+			return leftValue, nil
 		}
 
 	case tkn.AND:
 
-		if !loxvalue.IsTruthy(left.Value) {
-			return left
+		if !loxvalue.IsTruthy(leftValue) {
+			return leftValue, nil
 		}
 	}
 	return i.Evaluate(LogicalExpr.Right)
 
 }
 
-// VisitIfStatement implements stmt.StmtVisitor.
-func (i *Interpreter) VisitIfStatement(IfStmt stmt.IfStmt) *visitor.VisitorResult {
-
-	conditionValue := i.Evaluate(IfStmt.Condition)
-	if conditionValue.Error != nil {
-		return visitor.NewVisitorResult(nil, conditionValue.Error)
-	}
-
-	isConditionTrue := loxvalue.IsTruthy(conditionValue.Value)
-	if isConditionTrue {
-		return i.execute(IfStmt.ThenBrnach)
-	} else if IfStmt.ElseBranch != nil {
-		return i.execute(IfStmt.ElseBranch)
-	}
-
-	return visitor.NewVisitorResult(nil, nil)
-
-}
-
-// VisitBlockStatement implements stmt.StmtVisitor.
-func (i *Interpreter) VisitBlockStatement(BlockStmt stmt.BlockStmt) *visitor.VisitorResult {
-	i.executeBlock(BlockStmt.Statements, NewLocalEnv(i.env))
-	return visitor.NewVisitorResult(nil, nil)
-}
-
-func (i *Interpreter) executeBlock(statements []stmt.Stmt, localEnv *Environment) *visitor.VisitorResult {
-
-	prevEnv := localEnv.enclosing
-	i.env = localEnv
-
-	defer func() {
-		i.env = prevEnv
-	}()
-
-	for _, statement := range statements {
-		res := i.execute(statement)
-		if res.Err != nil {
-			return visitor.NewVisitorResult(nil, res.Err)
-		}
-	}
-
-	return visitor.NewVisitorResult(nil, nil)
-
-}
-
-// VisitAssing implements expr.ExprVisitor.
-func (i *Interpreter) VisitAssing(assignExpr expression.AssignExpr) expr.LoxValueResult {
-
-	res := i.Evaluate(assignExpr.Right)
-	if res.Error != nil {
-		return res
-	}
-
-	//todo: design a solution to get rid of this casting thing.
-	// if res.Err is nil, then casting should be done at an earlier stage.
-	err := i.env.Assing(assignExpr.Name, res.Value)
+func (i *Interpreter) Evaluate(expr expression.Expr) (loxvalue.LoxValue, error) {
+	
+	value, err := expr.Evaluate(i)
 	if err != nil {
-		return expression.LoxValueResult{Error: err}
+		return nil, err
 	}
-	return res
-}
 
-// VisitVariableStatement implements stmt.StmtVisitor.
-func (i *Interpreter) VisitVariableStatement(variableStmt stmt.VarStmt) *visitor.VisitorResult {
-
-	var varExpr loxvalue.LoxValue
-	if variableStmt.Initializer != nil {
-		initializer := i.Evaluate(variableStmt.Initializer)
-		if initializer.Error != nil {
-			return visitor.NewVisitorResult(nil, initializer.Error)
-		}
-		varExpr = initializer.Value
-	} else {
-		varExpr = loxvalue.Nil{}
+	loxValue, ok := value.(loxvalue.LoxValue)
+	if !ok {
+		return nil, nil //todo casting error
 	}
-	i.env.Define(variableStmt.Name.Lexeme, varExpr)
-	return visitor.NewVisitorResult(nil, nil)
 
+	return loxValue, nil
 }
 
-// VisitVariable implements expr.ExprVisitor.
-func (i *Interpreter) VisitVariable(element expression.VariableExpr) expr.LoxValueResult {
-	variable, err := i.env.Get(element.Name)
-	return expression.LoxValueResult{Value: variable, Error: err}
+func (i *Interpreter) VisitExpressionStatement(exprStmt stmt.ExprStmt) (interface{}, error) {
+	return i.Evaluate(exprStmt.E)
 }
 
-func NewInterpreter() *Interpreter {
-	return &Interpreter{
-		Results: []*visitor.VisitorResult{},
-		env:     NewGlobalEnv(),
-	}
-}
+func (i *Interpreter) VisitUnary(expr expr.UnaryExpr) (interface{}, error) {
 
-func (i *Interpreter) Evaluate(expr expression.Expr) expr.LoxValueResult {
-	return expr.Evaluate(i)
-}
-
-func (i *Interpreter) execute(stmt stmt.Stmt) *visitor.VisitorResult {
-	return stmt.Accept(i)
-}
-
-func (i *Interpreter) Interpret(statements []stmt.Stmt) {
-	for _, statement := range statements {
-		result := i.execute(statement)
-		i.Results = append(i.Results, result)
-	}
-}
-
-func (i *Interpreter) VisitPrintStatement(printStmt stmt.PrintStmt) *visitor.VisitorResult {
-
-	lv := i.Evaluate(printStmt.E) //todo: handle evaluation errors.
-	fmt.Println(lv.Value.ToString())
-	return visitor.NewVisitorResult(nil, nil)
-
-}
-
-func (i *Interpreter) VisitExpressionStatement(exprStmt stmt.ExprStmt) *visitor.VisitorResult {
-	res := i.Evaluate(exprStmt.E)
-	return visitor.NewVisitorResult(res, res.Error)
-}
-
-func (i *Interpreter) VisitLiteral(expr expression.LiteralExpr) expr.LoxValueResult {
-	return expression.LoxValueResult{Value: expr.Value}
-}
-
-func (i *Interpreter) VisitUnary(expr expr.UnaryExpr) expr.LoxValueResult {
-
-	right := i.Evaluate(expr.Right)
-	if right.Error != nil {
-		return right
+	right, err := i.Evaluate(expr.Right)
+	if err != nil {
+		return nil, err
 	}
 
 	var result loxvalue.LoxValue
 
 	switch expr.Operator.Type {
 	case tkn.MINUS:
-		number, err := checkNumberOperand(expr.Operator, right.Value)
+		number, err := checkNumberOperand(expr.Operator, right)
 		if err != nil {
-			return expression.LoxValueResult{Error: err}
+			return nil, err
 		}
 		result = number.Minus()
 	case tkn.BANG:
-		result = loxvalue.NewBoolean(!loxvalue.IsTruthy(right.Value))
+		result = loxvalue.NewBoolean(!loxvalue.IsTruthy(right))
 	}
 	//todo: error
-	return expression.LoxValueResult{Value: result}
+	return result, nil
 
 }
 
-func (i *Interpreter) VisitBinary(expr expr.BinaryExpr) expr.LoxValueResult {
+func (i *Interpreter) VisitBinary(expr expr.BinaryExpr) (interface{}, error) {
 
-	left := i.Evaluate(expr.Left)
-	right := i.Evaluate(expr.Right)
-
-	if left.Error != nil {
-		return left
+	left, err := i.Evaluate(expr.Left)
+	if err != nil {
+		return nil, err
 	}
-	if right.Error != nil {
-		return right
+	right, err := i.Evaluate(expr.Right)
+	if err != nil {
+		return nil, err
 	}
 
 	switch expr.Operator.Type {
 	case tkn.MINUS:
 
-		left, right, err := checkNumberOperands(expr.Operator, left.Value, right.Value)
+		left, right, err := checkNumberOperands(expr.Operator, left, right)
 		if err != nil {
-			return expression.LoxValueResult{Error: err}
+			return nil, err
 		}
-		return expression.LoxValueResult{Value: left.Subtract(right)}
+		return left.Subtract(right), nil
 
 	case tkn.SLASH:
 
-		left, right, err := checkNumberOperands(expr.Operator, left.Value, right.Value)
+		left, right, err := checkNumberOperands(expr.Operator, left, right)
 		if err != nil {
-			return expression.LoxValueResult{Error: err}
+			return nil, err
 		}
-		return expression.LoxValueResult{Value: left.Divide(right)}
+		return left.Divide(right), nil
 
 	case tkn.STAR:
 
-		left, right, err := checkNumberOperands(expr.Operator, left.Value, right.Value)
+		left, right, err := checkNumberOperands(expr.Operator, left, right)
 		if err != nil {
-			return expression.LoxValueResult{Error: err}
+			return nil, err
 		}
-		return expression.LoxValueResult{Value: left.Multiply(right)}
+		return left.Multiply(right), nil
 
 	case tkn.PLUS:
 
-		result, err := binaryPlus(expr.Operator, left.Value, right.Value)
+		result, err := binaryPlus(expr.Operator, left, right)
 		if err != nil {
-			return expression.LoxValueResult{Error: err}
+			return nil, err
 		}
-		return expression.LoxValueResult{Value: result}
+		return result, err
 
 	case tkn.GREATER:
 
-		left, right, err := checkNumberOperands(expr.Operator, left.Value, right.Value)
+		left, right, err := checkNumberOperands(expr.Operator, left, right)
 		if err != nil {
-			return expression.LoxValueResult{Error: err}
+			return nil, err
 		}
-		return expression.LoxValueResult{Value: left.Greater(right)}
+		return left.Greater(right), nil
 
 	case tkn.GREATER_EQUAL:
 
-		left, right, err := checkNumberOperands(expr.Operator, left.Value, right.Value)
+		left, right, err := checkNumberOperands(expr.Operator, left, right)
 		if err != nil {
-			return expression.LoxValueResult{Error: err}
+			return nil, err
 		}
-		return expression.LoxValueResult{Value: left.GreaterEqual(right)}
+		return left.GreaterEqual(right), nil
 
 	case tkn.LESS:
 
-		left, right, err := checkNumberOperands(expr.Operator, left.Value, right.Value)
+		left, right, err := checkNumberOperands(expr.Operator, left, right)
 		if err != nil {
-			return expression.LoxValueResult{Error: err}
+			return nil, err
 		}
-		return expression.LoxValueResult{Value: left.Less(right)}
+		return left.Less(right), nil
 
 	case tkn.LESS_EQUAL:
 
-		left, right, err := checkNumberOperands(expr.Operator, left.Value, right.Value)
+		left, right, err := checkNumberOperands(expr.Operator, left, right)
 		if err != nil {
-			return expression.LoxValueResult{Error: err}
+			return nil, err
 		}
-		return expression.LoxValueResult{Value: left.LessEqual(right)}
+		return left.LessEqual(right), nil
 
 	case tkn.BANG_EQUAL:
 
-		result := loxvalue.NewBoolean(!loxvalue.IsEqual(left.Value, right.Value))
-		return expression.LoxValueResult{Value: result}
+		result := loxvalue.NewBoolean(!loxvalue.IsEqual(left, right))
+		return result, nil
 
 	case tkn.EQUAL_EQUAL:
 
-		result := loxvalue.NewBoolean(loxvalue.IsEqual(left.Value, right.Value))
-		return expression.LoxValueResult{Value: result}
+		result := loxvalue.NewBoolean(loxvalue.IsEqual(left, right))
+		return result, nil
 
 	}
 
 	//todo: error
-	return expression.LoxValueResult{Error: nil}
+	return nil, nil
 }
 
-func (i *Interpreter) VisitGrouping(expr expr.GroupingExpr) expr.LoxValueResult {
+func (i *Interpreter) VisitGrouping(expr expr.GroupingExpr) (interface{}, error) {
 	return i.Evaluate(expr.Expr)
 }
 
