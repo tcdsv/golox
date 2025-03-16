@@ -20,7 +20,9 @@ func TestParser_LiteralExpressions(t *testing.T) {
 		expected	stmt.Stmt
 	}{
 		{"\"foo\";", stmt.ExprStmt{E: expr.LiteralExpr{Value: loxvalue.NewString("foo")}}},
-		
+
+		{"\"foo bar\";", stmt.ExprStmt{E: expr.LiteralExpr{Value: loxvalue.NewString("foo bar")}}},
+
 		{"123;", stmt.ExprStmt{
             E: expr.LiteralExpr{Value: &loxvalue.Number{Value: 123}},
         }},
